@@ -1,0 +1,91 @@
+@page
+@model TicketVoucherSystemApp.Pages.Operations.IssueModel
+@{
+    ViewData["Title"] = "Issue vouchers";
+    var batchRoutes = Model.IssuedVouchers
+        .Select((voucher, index) => new { voucher.Id, Index = index })
+        .ToDictionary(item => $"ids[{item.Index}]", item => item.Id.ToString());
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Voucher operations</p>
+        <h1>Issue vouchers</h1>
+        <p>Create customer-ready vouchers and download their barcodes.</p>
+    </div>
+    <a class="button secondary" asp-page="/Operations/Import">Import paired barcodes</a>
+</div>
+
+<div class="workspace-grid">
+    <section class="workspace-primary">
+        <form method="post" class="issue-form">
+            <div asp-validation-summary="ModelOnly" class="validation"></div>
+            <fieldset class="package-list">
+                <legend>Choose a package</legend>
+                @foreach (var package in Model.Packages)
+                {
+                    <label class="package-option">
+                        <input asp-for="PackageId" type="radio" value="@package.Id" />
+                        <span>
+                            <strong>@package.Name</strong>
+                            <small>@package.Description</small>
+                        </span>
+                        <b>@package.Amount.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</b>
+                    </label>
+                }
+            </fieldset>
+            <label class="field compact">
+                <span>Quantity</span>
+                <input asp-for="Quantity" type="number" min="1" max="100" />
+                <small>Issue up to 100 vouchers in one batch.</small>
+            </label>
+            <button class="button primary wide" type="submit">Issue vouchers</button>
+        </form>
+    </section>
+
+    <aside class="inspector">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Live register</p>
+                <h2>Recent vouchers</h2>
+            </div>
+            <a class="text-link" asp-page="/Admin/Vouchers/Index">View all</a>
+        </div>
+        <div class="voucher-list">
+            @foreach (var voucher in Model.RecentVouchers)
+            {
+                <a class="voucher-row" asp-page="/Admin/Vouchers/Details" asp-route-id="@voucher.Id">
+                    <span class="voucher-icon">@voucher.DepartmentType[0]</span>
+                    <span>
+                        <strong>@voucher.Amount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</strong>
+                        <small>@voucher.PackageName · @(voucher.Code.Length > 6 ? voucher.Code[^6..] : voucher.Code)</small>
+                    </span>
+                    <span class="status @voucher.Status.ToLowerInvariant()">@voucher.Status</span>
+                </a>
+            }
+        </div>
+    </aside>
+</div>
+
+@if (Model.IssuedVouchers.Count > 0)
+{
+    <dialog class="result-dialog" open>
+        <div class="dialog-heading">
+            <div>
+                <p class="eyebrow">Ready to send</p>
+                <h2>@Model.IssuedVouchers.Count voucher(s) issued</h2>
+            </div>
+            <button class="icon-button" type="button" data-close-dialog aria-label="Close">×</button>
+        </div>
+        <div class="issued-list">
+            @foreach (var voucher in Model.IssuedVouchers)
+            {
+                <div>
+                    <span><strong>@voucher.PackageName</strong><small>@voucher.Code</small></span>
+                    <a class="button secondary small" asp-page-handler="Barcode" asp-route-id="@voucher.Id">Download barcode</a>
+                </div>
+            }
+        </div>
+        <a class="button primary wide" asp-page-handler="Batch" asp-all-route-data="batchRoutes">Download all (.zip)</a>
+    </dialog>
+}

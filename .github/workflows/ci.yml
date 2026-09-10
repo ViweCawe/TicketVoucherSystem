@@ -1,0 +1,112 @@
+name: Build, database, and UI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: Voucher_CI_2026!Strong
+        ports:
+          - 1433:1433
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore TicketVoucherSystem.slnx
+
+      - name: Build
+        run: dotnet build TicketVoucherSystem.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test TicketVoucherSystem.slnx --configuration Release --no-build
+
+      - name: Deploy database objects
+        shell: bash
+        run: |
+          container="${{ job.services.sqlserver.id }}"
+          sqlcmd=/opt/mssql-tools18/bin/sqlcmd
+          for attempt in {1..30}; do
+            if docker exec "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -Q 'SELECT 1' >/dev/null 2>&1; then
+              break
+            fi
+            if [ "$attempt" = 30 ]; then
+              echo 'SQL Server did not become ready.'
+              exit 1
+            fi
+            sleep 2
+          done
+          docker exec "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -Q 'CREATE DATABASE TicketVoucherSystem'
+          docker cp database/. "$container":/tmp/database
+          docker exec -w /tmp/database "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -d TicketVoucherSystem -i Deploy.sql
+
+      - name: Apply existing Identity migration
+        env:
+          ConnectionStrings__DefaultConnection: Server=localhost,1433;Database=TicketVoucherSystem;User Id=sa;Password=Voucher_CI_2026!Strong;TrustServerCertificate=True
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.0.9
+          dotnet ef database update --project TicketVoucherSystemApp
+
+      - name: Publish IIS folder
+        run: dotnet publish TicketVoucherSystemApp/TicketVoucherSystemApp.csproj --configuration Release --no-build --output artifacts/iis
+
+      - name: Upload IIS folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: TicketVoucherSystem-IIS
+          path: artifacts/iis
+          if-no-files-found: error
+
+      - name: Start application
+        env:
+          ASPNETCORE_URLS: http://127.0.0.1:5080
+          ASPNETCORE_ENVIRONMENT: Development
+          ConnectionStrings__DefaultConnection: Server=localhost,1433;Database=TicketVoucherSystem;User Id=sa;Password=Voucher_CI_2026!Strong;TrustServerCertificate=True
+          Admin__Email: ci-admin@example.com
+          Admin__BootstrapPassword: CI_Admin_2026!Strong
+        run: |
+          dotnet run --project TicketVoucherSystemApp --configuration Release --no-build > /tmp/voucher-app.log 2>&1 &
+          echo $! > /tmp/voucher-app.pid
+          curl --fail --retry 30 --retry-delay 2 --retry-connrefused http://127.0.0.1:5080/health
+
+      - name: Install Chromium and run UI checks
+        working-directory: TicketVoucherSystemApp.Tests/ui
+        env:
+          BASE_URL: http://127.0.0.1:5080
+          ADMIN_EMAIL: ci-admin@example.com
+          ADMIN_PASSWORD: CI_Admin_2026!Strong
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+          npx playwright test
+
+      - name: Upload UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoucherSystem-UI-screenshots
+          path: TicketVoucherSystemApp.Tests/ui/artifacts
+          if-no-files-found: warn
+
+      - name: Show application log on failure
+        if: failure()
+        run: cat /tmp/voucher-app.log || true

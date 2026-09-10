@@ -1,0 +1,63 @@
+@page "{id:long}"
+@model TicketVoucherSystemApp.Pages.Admin.Vouchers.DetailsModel
+@{
+    ViewData["Title"] = "Voucher details";
+}
+
+<div class="page-heading">
+    <div>
+        <a class="back-link" asp-page="Index">← Voucher register</a>
+        <h1>@Model.Voucher.Code</h1>
+        <p>@Model.Voucher.PackageName · @Model.Voucher.DepartmentType</p>
+    </div>
+    <a class="button primary" asp-page-handler="Barcode" asp-route-id="@Model.Voucher.Id">Download barcode</a>
+</div>
+
+<div class="detail-grid">
+    <section class="detail-summary">
+        <div class="detail-value">
+            <span>Voucher value</span>
+            <strong>@Model.Voucher.Amount.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</strong>
+            <span class="status @Model.Voucher.Status.ToLowerInvariant()">@Model.Voucher.Status</span>
+        </div>
+        <dl>
+            <div><dt>Issued</dt><dd>@Model.Voucher.IssuedUtc.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</dd></div>
+            <div><dt>Expires</dt><dd>@Model.Voucher.ExpiresUtc.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</dd></div>
+            <div><dt>Redeemed</dt><dd>@(Model.Voucher.RedeemedUtc?.ToLocalTime().ToString("dd MMM yyyy, HH:mm") ?? "Not redeemed")</dd></div>
+            <div><dt>Location</dt><dd>@(Model.Voucher.RedeemedAt ?? "-")</dd></div>
+            <div><dt>Redeemed by</dt><dd>@(Model.Voucher.RedeemedBy ?? "-")</dd></div>
+            <div><dt>Pair reference</dt><dd>@(Model.Voucher.PairReference ?? "-")</dd></div>
+        </dl>
+        @if (Model.Voucher.Status == "Issued")
+        {
+            <form method="post" asp-page-handler="Cancel" class="cancel-form">
+                <input type="hidden" name="id" value="@Model.Voucher.Id" />
+                <div asp-validation-summary="ModelOnly" class="validation"></div>
+                <label class="field">
+                    <span>Cancellation reason</span>
+                    <textarea asp-for="CancellationReason" rows="3"></textarea>
+                    <span asp-validation-for="CancellationReason" class="validation"></span>
+                </label>
+                <button class="button danger wide" type="submit">Cancel voucher</button>
+            </form>
+        }
+    </section>
+    <section class="timeline-section">
+        <p class="eyebrow">Audit trail</p>
+        <h2>Status history</h2>
+        <ol class="timeline">
+            @foreach (var item in Model.Events)
+            {
+                <li>
+                    <span></span>
+                    <div>
+                        <strong>@item.EventType</strong>
+                        <time>@item.EventUtc.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</time>
+                        <small>@item.PerformedBy@(string.IsNullOrWhiteSpace(item.Location) ? "" : $" · {item.Location}")</small>
+                        @if (!string.IsNullOrWhiteSpace(item.Notes)) { <p>@item.Notes</p> }
+                    </div>
+                </li>
+            }
+        </ol>
+    </section>
+</div>

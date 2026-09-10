@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="TicketVoucherSystemApp/TicketVoucherSystemApp.csproj" />
+  <Project Path="TicketVoucherSystemApp.Tests/TicketVoucherSystemApp.Tests.csproj" />
 </Solution>

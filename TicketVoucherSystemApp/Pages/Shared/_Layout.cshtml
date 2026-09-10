@@ -1,53 +1,64 @@
-﻿<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - TicketVoucherSystemApp</title>
-    <script type="importmap"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Ticket Voucher System</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/TicketVoucherSystemApp.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">TicketVoucherSystemApp</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                    <partial name="_LoginPartial" />
-                </div>
-            </div>
+    <aside class="sidebar">
+        <a class="brand" asp-page="/Operations/Issue">
+            <span class="brand-mark">TV</span>
+            <span>Ticket Vouchers</span>
+        </a>
+        <nav aria-label="Main navigation">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-page="/Operations/Issue">Issue vouchers</a>
+                <a asp-page="/Operations/Redeem" asp-route-department="Retail">Retail redeem</a>
+                <a asp-page="/Operations/Redeem" asp-route-department="FoodAndBeverage">F&amp;B redeem</a>
+                <a asp-page="/Operations/Import">Import pairs</a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <span class="nav-label">Administration</span>
+                    <a asp-page="/Admin/Vouchers/Index">Voucher register</a>
+                    <a asp-page="/Admin/Packages/Index">Packages</a>
+                }
+            }
+            else
+            {
+                <a asp-area="Identity" asp-page="/Account/Login">Sign in</a>
+                <a asp-area="Identity" asp-page="/Account/Register">Create account</a>
+            }
         </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - TicketVoucherSystemApp - <a asp-area="" asp-page="/Privacy">Privacy</a>
+        <div class="sidebar-user">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-area="Identity" asp-page="/Account/Manage/Index">@User.Identity.Name</a>
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/" method="post">
+                    <button class="link-button" type="submit">Sign out</button>
+                </form>
+            }
+            else
+            {
+                <span>Secure voucher operations</span>
+            }
         </div>
-    </footer>
-
+    </aside>
+    <main class="main">
+        <header class="topbar">
+            <span>TABLE MOUNTAIN / VOUCHER OPERATIONS</span>
+        </header>
+        <div class="content">
+            @RenderBody()
+        </div>
+    </main>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

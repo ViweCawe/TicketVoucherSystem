@@ -1,4 +1,8 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+document.querySelectorAll('dialog[open]').forEach((dialog) => {
+    dialog.close();
+    dialog.showModal();
+});
 
-// Write your JavaScript code.
+document.querySelectorAll('[data-close-dialog]').forEach((button) => {
+    button.addEventListener('click', () => button.closest('dialog')?.close());
+});

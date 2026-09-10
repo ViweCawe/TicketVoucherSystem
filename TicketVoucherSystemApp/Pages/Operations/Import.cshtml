@@ -1,0 +1,52 @@
+@page
+@model TicketVoucherSystemApp.Pages.Operations.ImportModel
+@{
+    ViewData["Title"] = "Import paired barcodes";
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Batch tools</p>
+        <h1>Import paired barcodes</h1>
+        <p>Each 10-digit barcode creates one retail and one F&amp;B voucher.</p>
+    </div>
+</div>
+
+<form method="post" class="form-panel narrow">
+    <div asp-validation-summary="ModelOnly" class="validation"></div>
+    <label class="field">
+        <span>Retail package</span>
+        <select asp-for="RetailPackageId">
+            <option value="">Choose a package</option>
+            @foreach (var package in Model.RetailPackages)
+            {
+                <option value="@package.Id">@package.Name - @package.Amount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</option>
+            }
+        </select>
+    </label>
+    <label class="field">
+        <span>F&amp;B package</span>
+        <select asp-for="FoodPackageId">
+            <option value="">Choose a package</option>
+            @foreach (var package in Model.FoodPackages)
+            {
+                <option value="@package.Id">@package.Name - @package.Amount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</option>
+            }
+        </select>
+    </label>
+    <label class="field">
+        <span>10-digit barcode list</span>
+        <textarea asp-for="Barcodes" rows="12" placeholder="1234567890&#10;0987654321"></textarea>
+        <small>Paste one per line, or separate values with commas.</small>
+        <span asp-validation-for="Barcodes" class="validation"></span>
+    </label>
+    <button class="button primary" type="submit">Create paired vouchers</button>
+</form>
+
+@if (Model.Result is not null)
+{
+    <div class="notice success-message">
+        <strong>Import complete</strong>
+        <span>@Model.Result.PairCount pairs · @Model.Result.VoucherCount vouchers created</span>
+    </div>
+}
