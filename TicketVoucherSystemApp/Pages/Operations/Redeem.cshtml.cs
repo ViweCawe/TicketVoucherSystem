@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Data.SqlClient;
-using TicketVoucherSystemApp.Vouchers.Data;
-using TicketVoucherSystemApp.Vouchers.Models;
+using TicketVoucherSystem.Data.Exceptions;
+using TicketVoucherSystem.Data.Repositories;
+using TicketVoucherSystem.Data.Models;
 
 namespace TicketVoucherSystemApp.Pages.Operations;
 
@@ -45,7 +45,7 @@ public sealed class RedeemModel(IVoucherData voucherData) : PageModel
                 User.Identity?.Name ?? "System",
                 cancellationToken);
         }
-        catch (SqlException exception) when (exception.Number is >= 50001 and <= 50005)
+        catch (VoucherOperationException exception)
         {
             ModelState.AddModelError(string.Empty, exception.Message);
         }

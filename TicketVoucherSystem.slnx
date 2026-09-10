@@ -1,4 +1,9 @@
 <Solution>
+  <Project Path="TicketVoucherSystem.Data/TicketVoucherSystem.Data.csproj" />
+  <Project Path="TicketVoucherSystem.Database/TicketVoucherSystem.Database.sqlproj" Id="81b6c093-a9d5-49d7-91db-89576b92b6a3">
+    <Build />
+    <Deploy />
+  </Project>
   <Project Path="TicketVoucherSystemApp/TicketVoucherSystemApp.csproj" />
   <Project Path="TicketVoucherSystemApp.Tests/TicketVoucherSystemApp.Tests.csproj" />
 </Solution>

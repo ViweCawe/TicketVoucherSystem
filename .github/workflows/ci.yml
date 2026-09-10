@@ -32,13 +32,15 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore
-        run: dotnet restore TicketVoucherSystem.slnx
+        run: |
+          dotnet restore TicketVoucherSystemApp/TicketVoucherSystemApp.csproj
+          dotnet restore TicketVoucherSystemApp.Tests/TicketVoucherSystemApp.Tests.csproj
 
-      - name: Build
-        run: dotnet build TicketVoucherSystem.slnx --configuration Release --no-restore
+      - name: Build web and data projects
+        run: dotnet build TicketVoucherSystemApp/TicketVoucherSystemApp.csproj --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test TicketVoucherSystem.slnx --configuration Release --no-build
+        run: dotnet test TicketVoucherSystemApp.Tests/TicketVoucherSystemApp.Tests.csproj --configuration Release --no-restore
 
       - name: Deploy database objects
         shell: bash
@@ -56,8 +58,8 @@ jobs:
             sleep 2
           done
           docker exec "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -Q 'CREATE DATABASE TicketVoucherSystem'
-          docker cp database/. "$container":/tmp/database
-          docker exec -w /tmp/database "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -d TicketVoucherSystem -i Deploy.sql
+          docker cp TicketVoucherSystem.Database/. "$container":/tmp/database
+          docker exec -w /tmp/database/Scripts "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -d TicketVoucherSystem -i Deploy.sql
 
       - name: Apply existing Identity migration
         env:

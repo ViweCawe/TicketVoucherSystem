@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using TicketVoucherSystemApp.Vouchers.Data;
-using TicketVoucherSystemApp.Vouchers.Models;
+using TicketVoucherSystem.Data.Repositories;
+using TicketVoucherSystem.Data.Models;
 
 namespace TicketVoucherSystemApp.Pages.Admin.Vouchers;
 

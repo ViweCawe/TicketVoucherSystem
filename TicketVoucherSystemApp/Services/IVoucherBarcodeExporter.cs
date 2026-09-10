@@ -1,4 +1,4 @@
-using TicketVoucherSystemApp.Vouchers.Models;
+using TicketVoucherSystem.Data.Models;
 
 namespace TicketVoucherSystemApp.Services;
 

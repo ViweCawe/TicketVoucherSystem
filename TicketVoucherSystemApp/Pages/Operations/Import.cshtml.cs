@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Data.SqlClient;
-using TicketVoucherSystemApp.Vouchers.Data;
-using TicketVoucherSystemApp.Vouchers.Models;
-using TicketVoucherSystemApp.Vouchers.Validation;
+using TicketVoucherSystem.Data.Exceptions;
+using TicketVoucherSystem.Data.Repositories;
+using TicketVoucherSystem.Data.Models;
+using TicketVoucherSystem.Data.Validation;
 
 namespace TicketVoucherSystemApp.Pages.Operations;
 
@@ -41,7 +41,7 @@ public sealed class ImportModel(IVoucherData voucherData, IVoucherPackageData pa
         {
             ModelState.AddModelError(nameof(Barcodes), exception.Message);
         }
-        catch (SqlException exception) when (exception.Number is >= 50030 and <= 50033)
+        catch (VoucherOperationException exception)
         {
             ModelState.AddModelError(string.Empty, exception.Message);
         }

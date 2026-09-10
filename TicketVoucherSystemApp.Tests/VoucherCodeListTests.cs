@@ -1,7 +1,7 @@
-using TicketVoucherSystemApp.Vouchers.Validation;
+using TicketVoucherSystem.Data.Validation;
 using Xunit;
 
-namespace TicketVoucherSystemApp.Vouchers.Tests;
+namespace TicketVoucherSystemApp.Tests;
 
 public sealed class VoucherCodeListTests
 {

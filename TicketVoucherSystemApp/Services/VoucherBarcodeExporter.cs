@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using System.Text;
 using System.Xml.Linq;
-using TicketVoucherSystemApp.Vouchers.Models;
+using TicketVoucherSystem.Data.Models;
 using ZXing;
 using ZXing.Common;
 using ZXing.Rendering;

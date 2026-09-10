@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TicketVoucherSystemApp.Data;
 using TicketVoucherSystemApp.Services;
-using TicketVoucherSystemApp.Vouchers.Data;
-using TicketVoucherSystemApp.Vouchers.Db;
+using TicketVoucherSystem.Data.Repositories;
+using TicketVoucherSystem.Data.Sql;
 
 var builder = WebApplication.CreateBuilder(args);
 

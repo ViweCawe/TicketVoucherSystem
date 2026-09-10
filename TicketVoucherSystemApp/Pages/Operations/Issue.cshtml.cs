@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Data.SqlClient;
-using TicketVoucherSystemApp.Vouchers.Data;
-using TicketVoucherSystemApp.Vouchers.Models;
+using TicketVoucherSystem.Data.Exceptions;
+using TicketVoucherSystem.Data.Repositories;
+using TicketVoucherSystem.Data.Models;
 using TicketVoucherSystemApp.Services;
 
 namespace TicketVoucherSystemApp.Pages.Operations;
@@ -38,7 +38,7 @@ public sealed class IssueModel(
         {
             IssuedVouchers = await voucherData.IssueAsync(PackageId, Quantity, UserName, cancellationToken);
         }
-        catch (SqlException exception) when (exception.Number is 50020 or 50021)
+        catch (VoucherOperationException exception)
         {
             ModelState.AddModelError(string.Empty, exception.Message);
         }

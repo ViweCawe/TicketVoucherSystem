@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Data.SqlClient;
-using TicketVoucherSystemApp.Vouchers.Data;
-using TicketVoucherSystemApp.Vouchers.Models;
+using TicketVoucherSystem.Data.Exceptions;
+using TicketVoucherSystem.Data.Repositories;
+using TicketVoucherSystem.Data.Models;
 using TicketVoucherSystemApp.Services;
 
 namespace TicketVoucherSystemApp.Pages.Admin.Vouchers;
@@ -52,7 +52,7 @@ public sealed class DetailsModel(IVoucherData voucherData, IVoucherBarcodeExport
                 User.Identity?.Name ?? "System",
                 cancellationToken);
         }
-        catch (SqlException exception) when (exception.Number == 50040)
+        catch (VoucherOperationException exception)
         {
             ModelState.AddModelError(string.Empty, exception.Message);
             return await OnGetAsync(id, cancellationToken);

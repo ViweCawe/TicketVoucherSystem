@@ -17,16 +17,13 @@ A small ASP.NET Core Razor Pages application for issuing, exporting, tracking, a
 ## Structure
 
 ```text
-TicketVoucherSystemApp/           Existing Razor Pages and Identity application
-TicketVoucherSystemApp/Vouchers/  Models, interfaces, validation, and Dapper access
-TicketVoucherSystemApp.Tests/     Focused validation and browser checks
-database/Tables/                  SQL Server tables and indexes
-database/Views/                   Read model used by stored procedures
-database/StoredProcedures/        All voucher data access
-database/Seed/                    Starter voucher packages
+TicketVoucherSystemApp/       Razor Pages, Identity, barcode export, and IIS
+TicketVoucherSystem.Data/     Models, interfaces, Dapper access, and validation
+TicketVoucherSystem.Database/ Tables, views, stored procedures, and seed data
+TicketVoucherSystemApp.Tests/ Unit tests and browser checks
 ```
 
-The implementation extends the Razor Pages and Individual Accounts project already in this repository. Voucher code is grouped under one feature folder so there is only one web project and one Identity setup.
+The structure follows the Utility Management approach without coupling the web application to database implementation details. The web project references the Data class library. The SQL project is deployed separately and has no runtime project reference.
 
 ## Setup
 
@@ -46,10 +43,12 @@ Prerequisites: .NET 10 SDK, SQL Server 2019 or newer, and `sqlcmd` or SQL Server
    dotnet ef database update --project TicketVoucherSystemApp
    ```
 
-4. From the `database` folder, run the voucher schema in SQLCMD mode:
+4. Publish `TicketVoucherSystem.Database` from Visual Studio to create or update the voucher schema. For a new database, the fallback SQLCMD deployment is:
 
    ```powershell
+   cd TicketVoucherSystem.Database\Scripts
    sqlcmd -S "(localdb)\MSSQLLocalDB" -d TicketVoucherSystem -E -i Deploy.sql
+   cd ..\..
    ```
 
 5. Run the application:
@@ -69,9 +68,11 @@ Do not store production passwords or connection strings in `appsettings.json`.
 ## Verification
 
 ```powershell
-dotnet build TicketVoucherSystem.slnx
-dotnet test TicketVoucherSystem.slnx
+dotnet build TicketVoucherSystemApp\TicketVoucherSystemApp.csproj
+dotnet test TicketVoucherSystemApp.Tests\TicketVoucherSystemApp.Tests.csproj
 ```
+
+On Windows with SQL Server Data Tools installed, build the complete solution in Visual Studio to validate the database project and generate its DACPAC.
 
 For database verification, attempt two simultaneous redemptions of the same test voucher. Exactly one must succeed; the other must return “already redeemed.”
 
@@ -113,7 +114,7 @@ Bind an HTTPS certificate in IIS before production use. Do not expose the HTTP-o
 
 The included GitHub Actions workflow provisions the dependencies that this restricted workspace cannot download. On every push or pull request it:
 
-- installs .NET 10 and builds/tests the solution;
+- installs .NET 10 and builds the Web, Data, and Test projects;
 - starts SQL Server 2022 and deploys every table, view, procedure, and seed record;
 - applies the existing ASP.NET Core Identity migration;
 - publishes an artifact named `TicketVoucherSystem-IIS`;
@@ -125,6 +126,6 @@ The IIS artifact can be downloaded from a successful workflow run and extracted 
 
 1. Back up the target database.
 2. Apply the existing Identity migration.
-3. Apply `database/Deploy.sql` to the new database.
+3. Publish `TicketVoucherSystem.Database` to the target database.
 4. Deploy the generated IIS folder with its connection string and admin email in IIS app-pool configuration.
 5. Issue and redeem a low-value test voucher before enabling operator access.

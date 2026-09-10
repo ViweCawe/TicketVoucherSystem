@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace TicketVoucherSystemApp.Vouchers.Validation;
+namespace TicketVoucherSystem.Data.Validation;
 
 public static partial class VoucherCodeList
 {
