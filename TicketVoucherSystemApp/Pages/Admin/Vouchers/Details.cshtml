@@ -22,6 +22,7 @@
         </div>
         <dl>
             <div><dt>Issued</dt><dd>@Model.Voucher.IssuedUtc.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</dd></div>
+            <div><dt>Issued by</dt><dd>@Model.Voucher.IssuedBy</dd></div>
             <div><dt>Expires</dt><dd>@Model.Voucher.ExpiresUtc.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</dd></div>
             <div><dt>Redeemed</dt><dd>@(Model.Voucher.RedeemedUtc?.ToLocalTime().ToString("dd MMM yyyy, HH:mm") ?? "Not redeemed")</dd></div>
             <div><dt>Location</dt><dd>@(Model.Voucher.RedeemedAt ?? "-")</dd></div>

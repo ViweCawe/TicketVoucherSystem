@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using TicketVoucherSystemApp.Authorization;
 
 namespace TicketVoucherSystemApp.Services;
 
@@ -12,15 +13,26 @@ public sealed class AdminRoleInitializer(
         await using var scope = services.CreateAsyncScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        if (!await roleManager.RoleExistsAsync("Admin"))
+        foreach (var role in ApplicationRoles.All)
         {
-            await roleManager.CreateAsync(new IdentityRole("Admin"));
+            if (await roleManager.RoleExistsAsync(role))
+            {
+                continue;
+            }
+
+            var result = await roleManager.CreateAsync(new IdentityRole(role));
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    $"Role '{role}' could not be created: {Errors(result)}");
+            }
         }
 
-        var email = configuration["Admin:Email"];
+        var email = configuration["Admin:Email"]?.Trim();
         if (string.IsNullOrWhiteSpace(email))
         {
-            logger.LogInformation("Admin:Email is not configured; no user was promoted to Admin.");
+            logger.LogWarning(
+                "Admin:Email is not configured. Set it to the exact email address used to sign in, restart, then sign out and back in.");
             return;
         }
 
@@ -36,19 +48,35 @@ public sealed class AdminRoleInitializer(
                 EmailConfirmed = true
             };
 
-            var result = await userManager.CreateAsync(user, bootstrapPassword);
-            if (!result.Succeeded)
+            var created = await userManager.CreateAsync(user, bootstrapPassword);
+            if (!created.Succeeded)
             {
-                var errors = string.Join("; ", result.Errors.Select(error => error.Description));
-                throw new InvalidOperationException($"The bootstrap admin could not be created: {errors}");
+                throw new InvalidOperationException($"The bootstrap admin could not be created: {Errors(created)}");
             }
         }
 
-        if (user is not null && !await userManager.IsInRoleAsync(user, "Admin"))
+        if (user is null)
         {
-            await userManager.AddToRoleAsync(user, "Admin");
+            logger.LogWarning("Admin user {AdminEmail} was not found. Register that exact email or configure Admin:BootstrapPassword.", email);
+            return;
         }
+
+        if (!await userManager.IsInRoleAsync(user, ApplicationRoles.Admin))
+        {
+            var promoted = await userManager.AddToRoleAsync(user, ApplicationRoles.Admin);
+            if (!promoted.Succeeded)
+            {
+                throw new InvalidOperationException($"The admin role could not be assigned: {Errors(promoted)}");
+            }
+
+            await userManager.UpdateSecurityStampAsync(user);
+        }
+
+        logger.LogInformation("Admin access is configured for {AdminEmail}. A fresh sign-in is required after a role change.", email);
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    private static string Errors(IdentityResult result) =>
+        string.Join("; ", result.Errors.Select(error => error.Description));
 }

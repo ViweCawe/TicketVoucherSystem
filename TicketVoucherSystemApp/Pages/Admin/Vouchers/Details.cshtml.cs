@@ -60,4 +60,6 @@ public sealed class DetailsModel(IVoucherData voucherData, IVoucherBarcodeExport
 
         return RedirectToPage(new { id });
     }
+
+   
 }

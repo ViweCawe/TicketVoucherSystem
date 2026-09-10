@@ -1,3 +1,10 @@
+@{
+    var path = Context.Request.Path;
+    var signedIn = User.Identity?.IsAuthenticated == true;
+    var canReport = User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Executive");
+    var canIssue = User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Issuer");
+    var canRedeem = User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Redeemer");
+}
 <!doctype html>
 <html lang="en">
 <head>
@@ -9,53 +16,77 @@
     <link rel="stylesheet" href="~/TicketVoucherSystemApp.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <aside class="sidebar">
-        <a class="brand" asp-page="/Operations/Issue">
+    <header class="app-header">
+        <a class="brand" asp-page="/Dashboard/Index">
             <span class="brand-mark">TV</span>
-            <span>Ticket Vouchers</span>
+            <span><strong>Voucher Control</strong><small>Ticket operations</small></span>
         </a>
-        <nav aria-label="Main navigation">
-            @if (User.Identity?.IsAuthenticated == true)
+        <div class="header-context">
+            <span class="environment-dot"></span>
+            <span>Operations online</span>
+        </div>
+        <div class="header-user">
+            @if (signedIn)
             {
-                <a asp-page="/Operations/Issue">Issue vouchers</a>
-                <a asp-page="/Operations/Redeem" asp-route-department="Retail">Retail redeem</a>
-                <a asp-page="/Operations/Redeem" asp-route-department="FoodAndBeverage">F&amp;B redeem</a>
-                <a asp-page="/Operations/Import">Import pairs</a>
-                @if (User.IsInRole("Admin"))
-                {
-                    <span class="nav-label">Administration</span>
-                    <a asp-page="/Admin/Vouchers/Index">Voucher register</a>
-                    <a asp-page="/Admin/Packages/Index">Packages</a>
-                }
-            }
-            else
-            {
-                <a asp-area="Identity" asp-page="/Account/Login">Sign in</a>
-                <a asp-area="Identity" asp-page="/Account/Register">Create account</a>
-            }
-        </nav>
-        <div class="sidebar-user">
-            @if (User.Identity?.IsAuthenticated == true)
-            {
-                <a asp-area="Identity" asp-page="/Account/Manage/Index">@User.Identity.Name</a>
+                <a asp-area="Identity" asp-page="/Account/Manage/Index">@User.Identity?.Name</a>
                 <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/" method="post">
-                    <button class="link-button" type="submit">Sign out</button>
+                    <button class="header-button" type="submit">Sign out</button>
                 </form>
             }
-            else
+        </div>
+    </header>
+
+    <div class="app-shell">
+        <aside class="sidebar">
+            <nav aria-label="Main navigation">
+                @if (signedIn)
+                {
+                    <span class="nav-label">Overview</span>
+                    <a class="nav-link @(path.StartsWithSegments("/Dashboard") ? "active" : null)" asp-page="/Dashboard/Index"><span>D</span>Dashboard</a>
+                    @if (canReport)
+                    {
+                        <a class="nav-link @(path.StartsWithSegments("/Reports") ? "active" : null)" asp-page="/Reports/Index"><span>R</span>Reports</a>
+                    }
+
+                    <span class="nav-label">Voucher operations</span>
+                    @if (canIssue)
+                    {
+                        <a class="nav-link @(path.StartsWithSegments("/Operations/Issue") ? "active" : null)" asp-page="/Operations/Issue"><span>+</span>Issue vouchers</a>
+                        <a class="nav-link @(path.StartsWithSegments("/Operations/Import") ? "active" : null)" asp-page="/Operations/Import"><span>I</span>Import pairs</a>
+                    }
+                    @if (canRedeem)
+                    {
+                        <a class="nav-link @(path.StartsWithSegments("/Operations/Redeem") ? "active" : null)" asp-page="/Operations/Redeem" asp-route-department="Retail"><span>V</span>Retail redeem</a>
+                        <a class="nav-link" asp-page="/Operations/Redeem" asp-route-department="FoodAndBeverage"><span>F</span>F&amp;B redeem</a>
+                    }
+
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <span class="nav-label">Administration</span>
+                        <a class="nav-link @(path.StartsWithSegments("/Admin/Vouchers") ? "active" : null)" asp-page="/Admin/Vouchers/Index"><span>V</span>Voucher register</a>
+                        <a class="nav-link @(path.StartsWithSegments("/Admin/Packages") ? "active" : null)" asp-page="/Admin/Packages/Index"><span>P</span>Packages</a>
+                        <a class="nav-link @(path.StartsWithSegments("/Admin/Users") ? "active" : null)" asp-page="/Admin/Users/Index"><span>U</span>Users &amp; roles</a>
+                    }
+                }
+                else
+                {
+                    <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Sign in</a>
+                }
+            </nav>
+            @if (signedIn)
             {
-                <span>Secure voucher operations</span>
+                <div class="sidebar-footer">
+                    <span>Signed in</span>
+                    <strong>@(User.IsInRole("Admin") ? "Administrator" : "Team member")</strong>
+                </div>
             }
-        </div>
-    </aside>
-    <main class="main">
-        <header class="topbar">
-            <span>TABLE MOUNTAIN / VOUCHER OPERATIONS</span>
-        </header>
-        <div class="content">
-            @RenderBody()
-        </div>
-    </main>
+        </aside>
+
+        <main class="main">
+            <div class="content">@RenderBody()</div>
+        </main>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

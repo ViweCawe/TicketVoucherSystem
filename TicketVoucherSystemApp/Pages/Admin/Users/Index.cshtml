@@ -1,0 +1,93 @@
+@page
+@model TicketVoucherSystemApp.Pages.Admin.Users.IndexModel
+@{
+    ViewData["Title"] = "User management";
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Security and access</p>
+        <h1>User management</h1>
+        <p>Create accounts, assign roles, reset passwords, and control access.</p>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <div class="alert success">@Model.StatusMessage</div>
+}
+<div asp-validation-summary="ModelOnly" class="alert error"></div>
+
+<div class="admin-grid">
+    <section class="panel compact-panel">
+        <div class="panel-heading">
+            <div><p class="eyebrow">New account</p><h2>Add user</h2></div>
+        </div>
+        <form method="post" asp-page-handler="Create" class="stack-form">
+            <label class="field">
+                <span>Email address</span>
+                <input asp-for="NewUser.Email" autocomplete="off" />
+                <span asp-validation-for="NewUser.Email" class="validation"></span>
+            </label>
+            <label class="field">
+                <span>Temporary password</span>
+                <input asp-for="NewUser.Password" autocomplete="new-password" />
+                <span asp-validation-for="NewUser.Password" class="validation"></span>
+            </label>
+            <label class="field">
+                <span>Initial role</span>
+                <select asp-for="NewUser.Role">
+                    @foreach (var role in Model.AvailableRoles)
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </select>
+            </label>
+            <button class="button primary" type="submit">Add user</button>
+        </form>
+    </section>
+
+    <section class="panel users-panel">
+        <div class="panel-heading">
+            <div><p class="eyebrow">Directory</p><h2>@Model.Users.Count users</h2></div>
+        </div>
+        <div class="user-list">
+            @foreach (var user in Model.Users)
+            {
+                <article class="user-item">
+                    <div class="user-identity">
+                        <span class="avatar">@user.Email[..1].ToUpperInvariant()</span>
+                        <span><strong>@user.Email</strong><small>@(user.IsLocked ? "Access locked" : "Active account")</small></span>
+                        <span class="status @(user.IsLocked ? "cancelled" : "issued")">@(user.IsLocked ? "Locked" : "Active")</span>
+                    </div>
+                    <form method="post" asp-page-handler="Roles" class="role-form">
+                        <input type="hidden" name="userId" value="@user.Id" />
+                        <div class="role-options">
+                            @foreach (var role in Model.AvailableRoles)
+                            {
+                                <label><input type="checkbox" name="selectedRoles" value="@role" checked="@(user.Roles.Contains(role) ? "checked" : null)" /> @role</label>
+                            }
+                        </div>
+                        <button class="button secondary small" type="submit">Save roles</button>
+                    </form>
+                    <div class="user-actions">
+                        <form method="post" asp-page-handler="Lock">
+                            <input type="hidden" name="userId" value="@user.Id" />
+                            <input type="hidden" name="locked" value="@(!user.IsLocked)" />
+                            <button class="button secondary small" type="submit">@(user.IsLocked ? "Unlock" : "Lock")</button>
+                        </form>
+                        <form method="post" asp-page-handler="ResetPassword" class="reset-form">
+                            <input type="hidden" name="userId" value="@user.Id" />
+                            <input type="password" name="newPassword" placeholder="New temporary password" autocomplete="new-password" />
+                            <button class="button secondary small" type="submit">Reset</button>
+                        </form>
+                    </div>
+                </article>
+            }
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -49,19 +49,36 @@
                 <p class="eyebrow">Live register</p>
                 <h2>Recent vouchers</h2>
             </div>
-            <a class="text-link" asp-page="/Admin/Vouchers/Index">View all</a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="text-link" asp-page="/Admin/Vouchers/Index">View all</a>
+            }
         </div>
         <div class="voucher-list">
             @foreach (var voucher in Model.RecentVouchers)
             {
-                <a class="voucher-row" asp-page="/Admin/Vouchers/Details" asp-route-id="@voucher.Id">
-                    <span class="voucher-icon">@voucher.DepartmentType[0]</span>
-                    <span>
-                        <strong>@voucher.Amount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</strong>
-                        <small>@voucher.PackageName · @(voucher.Code.Length > 6 ? voucher.Code[^6..] : voucher.Code)</small>
-                    </span>
-                    <span class="status @voucher.Status.ToLowerInvariant()">@voucher.Status</span>
-                </a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a class="voucher-row" asp-page="/Admin/Vouchers/Details" asp-route-id="@voucher.Id" title="Open voucher details">
+                        <span class="voucher-icon">@voucher.DepartmentType[0]</span>
+                        <span>
+                            <strong>@voucher.Amount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</strong>
+                            <small>@voucher.PackageName · @(voucher.Code.Length > 6 ? voucher.Code[^6..] : voucher.Code)</small>
+                        </span>
+                        <span class="status @voucher.Status.ToLowerInvariant()">@voucher.Status</span>
+                    </a>
+                }
+                else
+                {
+                    <div class="voucher-row">
+                        <span class="voucher-icon">@voucher.DepartmentType[0]</span>
+                        <span>
+                            <strong>@voucher.Amount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</strong>
+                            <small>@voucher.PackageName · @(voucher.Code.Length > 6 ? voucher.Code[^6..] : voucher.Code)</small>
+                        </span>
+                        <span class="status @voucher.Status.ToLowerInvariant()">@voucher.Status</span>
+                    </div>
+                }
             }
         </div>
     </aside>

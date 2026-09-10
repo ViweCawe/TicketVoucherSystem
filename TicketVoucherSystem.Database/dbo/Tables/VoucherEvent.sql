@@ -10,6 +10,6 @@ CREATE TABLE dbo.VoucherEvent
     CONSTRAINT FK_VoucherEvent_Voucher FOREIGN KEY (VoucherId) REFERENCES dbo.Voucher(Id),
     CONSTRAINT CK_VoucherEvent_Type CHECK (EventType IN ('Issued', 'Imported', 'Redeemed', 'Expired', 'Cancelled'))
 );
-
+GO
 CREATE INDEX IX_VoucherEvent_VoucherId_EventUtc
     ON dbo.VoucherEvent (VoucherId, EventUtc DESC);

@@ -1,0 +1,73 @@
+@page
+@model TicketVoucherSystemApp.Pages.Dashboard.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var currency = System.Globalization.CultureInfo.GetCultureInfo("en-ZA");
+}
+
+<div class="page-heading dashboard-heading">
+    <div>
+        <p class="eyebrow">Operations overview</p>
+        <h1>Dashboard</h1>
+        <p>A clear view of voucher activity, value, and exceptions.</p>
+    </div>
+    <div class="button-row">
+        @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Redeemer"))
+        {
+            <a class="button secondary" asp-page="/Operations/Redeem" asp-route-department="Retail">Redeem</a>
+        }
+        @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Issuer"))
+        {
+            <a class="button primary" asp-page="/Operations/Issue">Issue vouchers</a>
+        }
+    </div>
+</div>
+
+<section class="kpi-grid" aria-label="Voucher performance">
+    <article class="kpi kpi-blue"><span>Vouchers issued</span><strong>@Model.Summary.TotalIssued</strong><small>@Model.Summary.IssuedToday issued today</small></article>
+    <article class="kpi kpi-teal"><span>Redeemed value</span><strong>@Model.Summary.RedeemedValue.ToString("C0", currency)</strong><small>@Model.Summary.TotalRedeemed redemptions</small></article>
+    <article class="kpi kpi-amber"><span>Outstanding value</span><strong>@Model.Summary.OutstandingValue.ToString("C0", currency)</strong><small>@Model.Summary.TotalOutstanding active vouchers</small></article>
+    <article class="kpi kpi-coral"><span>Redemption rate</span><strong>@Model.Summary.RedemptionRate.ToString("0.0")%</strong><small>Last 30 days</small></article>
+</section>
+
+<div class="dashboard-grid">
+    <section class="panel chart-panel">
+        <div class="panel-heading">
+            <div><p class="eyebrow">Seven-day movement</p><h2>Issue and redemption volume</h2></div>
+            @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Executive"))
+            {
+                <a class="text-link" asp-page="/Reports/Index">Open reports</a>
+            }
+        </div>
+        <div class="chart-legend"><span class="legend-issued">Issued</span><span class="legend-redeemed">Redeemed</span></div>
+        <div class="column-chart">
+            @foreach (var day in Model.Trend)
+            {
+                var issuedHeight = Math.Max(3, day.IssuedCount * 100 / Model.MaxDailyCount);
+                var redeemedHeight = Math.Max(3, day.RedeemedCount * 100 / Model.MaxDailyCount);
+                <div class="chart-day" title="@day.ReportDate.ToString("dd MMM"): @day.IssuedCount issued, @day.RedeemedCount redeemed">
+                    <div class="bars"><i class="bar issued" style="height:@issuedHeight%"></i><i class="bar redeemed" style="height:@redeemedHeight%"></i></div>
+                    <span>@day.ReportDate.ToString("ddd")</span>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="panel activity-panel">
+        <div class="panel-heading"><div><p class="eyebrow">Live activity</p><h2>Recent vouchers</h2></div></div>
+        <div class="activity-list">
+            @foreach (var voucher in Model.RecentVouchers)
+            {
+                <div class="activity-row">
+                    <span class="activity-mark @voucher.DepartmentType.ToLowerInvariant()">@voucher.DepartmentType[..1]</span>
+                    <span><strong>@voucher.PackageName</strong><small>@voucher.Code · @voucher.IssuedUtc.ToLocalTime().ToString("dd MMM HH:mm")</small></span>
+                    <span class="status @voucher.Status.ToLowerInvariant()">@voucher.Status</span>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a class="row-action" asp-page="/Admin/Vouchers/Details" asp-route-id="@voucher.Id" aria-label="Open @voucher.Code">View</a>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+</div>

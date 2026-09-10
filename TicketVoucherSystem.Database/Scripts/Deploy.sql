@@ -32,5 +32,11 @@ GO
 GO
 :r ../dbo/StoredProcedures/spVoucher_GetDashboard.sql
 GO
+:r ../dbo/StoredProcedures/spReport_GetExecutiveSummary.sql
+GO
+:r ../dbo/StoredProcedures/spReport_GetVoucherTrend.sql
+GO
+:r ../dbo/StoredProcedures/spReport_GetDepartmentPerformance.sql
+GO
 :r ./PostDeployment.sql
 GO

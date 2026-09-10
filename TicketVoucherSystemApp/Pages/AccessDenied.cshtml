@@ -1,0 +1,19 @@
+@page
+@model TicketVoucherSystemApp.Pages.AccessDeniedModel
+@{
+    ViewData["Title"] = "Access denied";
+}
+
+<section class="empty-state">
+    <span class="empty-code">403</span>
+    <h1>Access denied</h1>
+    <p>You are signed in as <strong>@(User.Identity?.Name ?? "unknown")</strong>.</p>
+    <p>Your current roles: <strong>@(Model.Roles.Count == 0 ? "None" : string.Join(", ", Model.Roles))</strong>.</p>
+    <p>If an administrator just changed your role, sign out and sign in again to refresh your access.</p>
+    <div class="button-row">
+        <a class="button secondary" asp-page="/Dashboard/Index">Return to dashboard</a>
+        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/Identity/Account/Login" method="post">
+            <button class="button primary" type="submit">Sign out</button>
+        </form>
+    </div>
+</section>
