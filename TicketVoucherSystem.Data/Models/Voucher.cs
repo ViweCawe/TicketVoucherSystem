@@ -4,7 +4,7 @@ public sealed class Voucher
 {
     public long Id { get; set; }
     public int PackageId { get; set; }
-    public long? BarcodeId { get; set; }
+    public long? TicketIssueId { get; set; }
     public string PackageName { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string DepartmentType { get; set; } = string.Empty;

@@ -1,77 +1,48 @@
 @page
 @model TicketVoucherSystemApp.Pages.Operations.IssueModel
 @{
-    ViewData["Title"] = "Voucher allocation";
-    var currency = System.Globalization.CultureInfo.GetCultureInfo("en-ZA");
-    var batchRoutes = Model.IssuedVouchers.Select((voucher, index) => new { voucher.Id, Index = index })
-        .ToDictionary(item => $"ids[{item.Index}]", item => item.Id.ToString());
+    ViewData["Title"] = "Attach voucher package";
 }
 
-<header class="command-heading">
-    <div>
-        <span class="command-index">02</span>
-        <p class="eyebrow">Barcode allocation</p>
-        <h1>Build vouchers from available tickets</h1>
-        <p>Choose the benefit. The system reserves the oldest matching barcode stock.</p>
-    </div>
-    <a class="button secondary" asp-page="/Operations/Import">Load more barcodes</a>
+<header class="ticket-issue-heading">
+    <p class="eyebrow">Ticket voucher issue</p>
+    <h1>Scan the ticket.<br />Attach the benefits.</h1>
+    <p>The ticket already owns the barcode. This system only adds the purchased voucher package.</p>
 </header>
 
-<div class="allocation-layout">
-    <section class="allocation-board">
-        <div class="inventory-header">
-            <div><span>Retail capacity</span><strong>@Model.Stock.AvailableRetail</strong></div>
-            <div><span>F&amp;B capacity</span><strong>@Model.Stock.AvailableFoodAndBeverage</strong></div>
-            <div class="inventory-rule"><span>Rule</span><strong>Existing codes only</strong></div>
+<form method="post" class="ticket-issue-console">
+    <div asp-validation-summary="ModelOnly" class="alert error"></div>
+    <section class="ticket-scan-step">
+        <span class="step-number">01</span>
+        <div>
+            <label for="TicketNumber">Existing ticket barcode</label>
+            <div class="ticket-scan-input"><span>SCAN</span><input asp-for="TicketNumber" placeholder="Scan or enter ticket number" autofocus autocomplete="off" /></div>
+            <span asp-validation-for="TicketNumber" class="validation"></span>
         </div>
-        <form method="post" class="allocation-form">
-            <div asp-validation-summary="ModelOnly" class="alert error"></div>
-            <div class="package-matrix">
+    </section>
+
+    <section class="ticket-package-step">
+        <span class="step-number">02</span>
+        <div>
+            <h2>Purchased package</h2>
+            <div class="ticket-package-list">
                 @foreach (var package in Model.Packages)
                 {
-                    <label class="package-cell">
-                        <input asp-for="PackageId" type="radio" value="@package.Id" />
-                        <span class="package-department">@package.DepartmentType</span>
-                        <strong>@package.Name</strong>
-                        <small>@package.Description</small>
-                        <b>@package.Amount.ToString("C0", currency)</b>
+                    <label>
+                        <input asp-for="TicketPackageId" type="radio" value="@package.Id" />
+                        <span><strong>@package.Name</strong><small>@package.Description</small><b>@package.BenefitSummary</b></span>
+                        <em>@package.BenefitCount benefits</em>
                     </label>
                 }
             </div>
-            <div class="allocation-footer">
-                <label class="quantity-control"><span>Quantity</span><input asp-for="Quantity" type="number" min="1" max="100" /></label>
-                <div><small>Allocation and voucher creation happen in one transaction.</small><button class="button primary" type="submit">Allocate and issue</button></div>
-            </div>
-        </form>
+            <span asp-validation-for="TicketPackageId" class="validation"></span>
+        </div>
     </section>
 
-    <aside class="activity-rail">
-        <div class="panel-heading"><div><p class="eyebrow">Latest allocations</p><h2>Voucher stream</h2></div></div>
-        @foreach (var voucher in Model.RecentVouchers)
-        {
-            <div class="stream-row">
-                <span class="stream-time">@voucher.IssuedUtc.ToLocalTime().ToString("HH:mm")</span>
-                <span><strong>@voucher.Code</strong><small>@voucher.PackageName</small></span>
-                <span class="status @voucher.Status.ToLowerInvariant()">@voucher.Status</span>
-                @if (User.IsInRole("Admin"))
-                {
-                    <a asp-page="/Admin/Vouchers/Details" asp-route-id="@voucher.Id">Open</a>
-                }
-            </div>
-        }
-    </aside>
-</div>
+    <footer>
+        <span>The next screen is a clean printable ticket page with the same barcode.</span>
+        <button class="button primary" type="submit">Attach package and continue</button>
+    </footer>
+</form>
 
-@if (Model.IssuedVouchers.Count > 0)
-{
-    <dialog class="result-dialog allocation-result" open>
-        <div class="dialog-heading"><div><p class="eyebrow">Allocation complete</p><h2>@Model.IssuedVouchers.Count voucher(s) ready</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close">x</button></div>
-        <div class="issued-list">
-            @foreach (var voucher in Model.IssuedVouchers)
-            {
-                <div><span><strong>@voucher.Code</strong><small>@voucher.PackageName</small></span><a class="button secondary small" asp-page-handler="Barcode" asp-route-id="@voucher.Id">Download</a></div>
-            }
-        </div>
-        <a class="button primary wide" asp-page-handler="Batch" asp-all-route-data="batchRoutes">Download all barcodes (.zip)</a>
-    </dialog>
-}
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

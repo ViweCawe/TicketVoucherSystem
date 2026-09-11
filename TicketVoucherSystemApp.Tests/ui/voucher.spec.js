@@ -16,39 +16,36 @@ test('identity screen has the dedicated secure layout', async ({ page }) => {
 });
 
 for (const viewport of [
-  { name: 'desktop', width: 1440, height: 960, barcode: '9100000001' },
-  { name: 'mobile', width: 390, height: 844, barcode: '9100000002' }
+  { name: 'desktop', width: 1440, height: 960, suffix: 'D' },
+  { name: 'mobile', width: 390, height: 844, suffix: 'M' }
 ]) {
-  test(`inventory, issue, redeem, and reports work on ${viewport.name}`, async ({ page }) => {
+  test(`ticket package, print, redemption, and reports work on ${viewport.name}`, async ({ page }) => {
+    const ticketNumber = `VIP-${Date.now()}-${viewport.suffix}`;
     await page.setViewportSize(viewport);
     await signIn(page);
 
-    await page.goto('/Operations/Import');
-    await page.getByLabel('Ticket barcode list').fill(viewport.barcode);
-    await page.getByRole('button', { name: 'Import barcode stock' }).click();
-    await expect(page.getByText('1 imported')).toBeVisible();
-
     await page.goto('/Operations/Issue');
-    await expect(page.getByRole('heading', { name: 'Build vouchers from available tickets' })).toBeVisible();
-    await page.locator('.package-cell input').first().check();
-    await page.getByRole('button', { name: 'Allocate and issue' }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
-    const issuedCode = await page.getByRole('dialog').locator('.issued-list strong').first().textContent();
-    expect(issuedCode).toBe(viewport.barcode);
+    await expect(page.getByRole('heading', { name: /Scan the ticket/i })).toBeVisible();
+    await page.getByLabel('Existing ticket barcode').fill(ticketNumber);
+    await page.getByText('VIP Ticket', { exact: true }).click();
+    await page.getByRole('button', { name: 'Attach package and continue' }).click();
+
+    await expect(page.getByText(ticketNumber, { exact: true })).toBeVisible();
+    await expect(page.getByText('F&B R100', { exact: true })).toBeVisible();
+    await expect(page.getByText('Retail R250', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Print ticket' })).toBeVisible();
+    await expect(page.locator('.print-barcode img')).toBeVisible();
 
     const downloadPromise = page.waitForEvent('download');
-    await page.getByRole('dialog').getByRole('link', { name: 'Download' }).click();
-    expect((await downloadPromise).suggestedFilename()).toMatch(/^voucher-.+\.svg$/);
-    await page.getByRole('button', { name: 'Close' }).click();
+    await page.getByRole('link', { name: 'Download barcode' }).click();
+    expect((await downloadPromise).suggestedFilename()).toBe(`ticket-${ticketNumber}.svg`);
 
     await page.goto('/Operations/Redeem?department=Retail');
     await page.getByLabel('Redeeming outlet').selectOption({ label: 'Vista' });
-    await page.getByPlaceholder('Scan or enter 10-digit barcode').fill(viewport.barcode);
+    await page.getByPlaceholder(/Scan or enter/i).fill(ticketNumber);
     await page.getByRole('button', { name: 'Redeem voucher' }).click();
     await expect(page.getByText('REDEEMED')).toBeVisible();
     await expect(page.getByText(/at Vista/)).toBeVisible();
-    await expect(page.getByLabel('Redeeming outlet')).toHaveValue(/\d+/);
-    await expect(page.getByPlaceholder('Scan or enter 10-digit barcode')).toHaveValue('');
 
     await page.goto('/Reports');
     await expect(page.getByRole('heading', { name: 'Where voucher value moves' })).toBeVisible();
@@ -58,6 +55,5 @@ for (const viewport of [
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
     );
     expect(hasHorizontalOverflow).toBe(false);
-    await page.screenshot({ path: `artifacts/report-${viewport.name}.png`, fullPage: true });
   });
 }

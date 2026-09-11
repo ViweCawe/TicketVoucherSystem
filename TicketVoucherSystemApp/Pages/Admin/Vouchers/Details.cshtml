@@ -10,7 +10,13 @@
         <h1>@Model.Voucher.Code</h1>
         <p>@Model.Voucher.PackageName · @Model.Voucher.DepartmentType</p>
     </div>
-    <a class="button primary" asp-page-handler="Barcode" asp-route-id="@Model.Voucher.Id">Download barcode</a>
+    <div class="page-actions">
+        @if (Model.Voucher.TicketIssueId.HasValue)
+        {
+            <a class="button secondary" asp-page="/Tickets/Print" asp-route-id="@Model.Voucher.TicketIssueId.Value">Open ticket print</a>
+        }
+        <a class="button primary" asp-page-handler="Barcode" asp-route-id="@Model.Voucher.Id">Download barcode</a>
+    </div>
 </div>
 
 <div class="detail-grid">

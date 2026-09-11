@@ -28,8 +28,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<IDataAccess, SqlDataAccess>();
 builder.Services.AddScoped<IVoucherData, VoucherData>();
+builder.Services.AddScoped<ITicketVoucherData, TicketVoucherData>();
 builder.Services.AddScoped<IVoucherPackageData, VoucherPackageData>();
-builder.Services.AddScoped<IVoucherBarcodeData, VoucherBarcodeData>();
 builder.Services.AddScoped<IOutletData, OutletData>();
 builder.Services.AddScoped<IVoucherReportData, VoucherReportData>();
 builder.Services.AddScoped<IUserAdministration, UserAdministration>();
@@ -40,7 +40,7 @@ builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeFolder("/Dashboard", "AppUser");
     options.Conventions.AuthorizePage("/Operations/Issue", "VoucherIssueAccess");
-    options.Conventions.AuthorizePage("/Operations/Import", "VoucherIssueAccess");
+    options.Conventions.AuthorizeFolder("/Tickets", "VoucherIssueAccess");
     options.Conventions.AuthorizePage("/Operations/Redeem", "VoucherRedeemAccess");
     options.Conventions.AuthorizeFolder("/Reports", "ReportsAccess");
     options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");

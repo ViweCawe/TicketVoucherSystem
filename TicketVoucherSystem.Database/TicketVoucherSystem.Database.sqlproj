@@ -6,7 +6,7 @@
     <Name>TicketVoucherSystem.Database</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
-    <ProjectGuid>{81b6c093-a9d5-49d7-91db-89576b92b6a3}</ProjectGuid>
+    <ProjectGuid>{81B6C093-A9D5-49D7-91DB-89576B92B6A3}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootNamespace>TicketVoucherSystem.Database</RootNamespace>
@@ -56,8 +56,10 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\VoucherPackage.sql" />
-    <Build Include="dbo\Tables\VoucherBarcode.sql" />
     <Build Include="dbo\Tables\Outlet.sql" />
+    <Build Include="dbo\Tables\TicketPackage.sql" />
+    <Build Include="dbo\Tables\TicketPackageBenefit.sql" />
+    <Build Include="dbo\Tables\TicketVoucherIssue.sql" />
     <Build Include="dbo\Tables\Voucher.sql" />
     <Build Include="dbo\Tables\VoucherEvent.sql" />
     <Build Include="dbo\Views\vVoucherDetails.sql" />
@@ -65,8 +67,6 @@
     <Build Include="dbo\StoredProcedures\spVoucherPackage_GetActive.sql" />
     <Build Include="dbo\StoredProcedures\spVoucherPackage_Save.sql" />
     <Build Include="dbo\StoredProcedures\spVoucherPackage_SetActive.sql" />
-    <Build Include="dbo\StoredProcedures\spVoucher_IssueBatch.sql" />
-    <Build Include="dbo\StoredProcedures\spVoucher_ImportPairs.sql" />
     <Build Include="dbo\StoredProcedures\spVoucher_Redeem.sql" />
     <Build Include="dbo\StoredProcedures\spVoucher_Cancel.sql" />
     <Build Include="dbo\StoredProcedures\spVoucher_GetRecent.sql" />
@@ -74,9 +74,10 @@
     <Build Include="dbo\StoredProcedures\spVoucher_GetById.sql" />
     <Build Include="dbo\StoredProcedures\spVoucherEvent_GetByVoucherId.sql" />
     <Build Include="dbo\StoredProcedures\spVoucher_GetDashboard.sql" />
-    <Build Include="dbo\StoredProcedures\spVoucherBarcode_Import.sql" />
-    <Build Include="dbo\StoredProcedures\spVoucherBarcode_GetStock.sql" />
-    <Build Include="dbo\StoredProcedures\spVoucherBarcode_Search.sql" />
+    <Build Include="dbo\StoredProcedures\spTicketPackage_GetActive.sql" />
+    <Build Include="dbo\StoredProcedures\spTicketVoucher_Issue.sql" />
+    <Build Include="dbo\StoredProcedures\spTicketVoucherIssue_GetById.sql" />
+    <Build Include="dbo\StoredProcedures\spTicketVoucherIssue_GetVouchers.sql" />
     <Build Include="dbo\StoredProcedures\spOutlet_GetActive.sql" />
     <Build Include="dbo\StoredProcedures\spOutlet_GetAll.sql" />
     <Build Include="dbo\StoredProcedures\spOutlet_Save.sql" />
@@ -87,7 +88,7 @@
     <Build Include="dbo\StoredProcedures\spReport_GetOutletPerformance.sql" />
     <PostDeploy Include="Scripts\PostDeployment.sql" />
     <None Include="Scripts\Deploy.sql" />
-    <None Include="Scripts\Upgrade-Barcode-Outlets.sql" />
+    <None Include="Scripts\Upgrade-TicketPackages-Outlets.sql" />
     <None Include="Scripts\Upgrade-ExecutiveReporting.sql" />
   </ItemGroup>
 </Project>

@@ -13,7 +13,7 @@ CREATE TABLE dbo.VoucherBarcode
     CONSTRAINT CK_VoucherBarcode_Department CHECK (DepartmentType IN ('Retail', 'FoodAndBeverage')),
     CONSTRAINT CK_VoucherBarcode_Status CHECK (Status IN ('Available', 'Assigned', 'Retired'))
 );
-
+GO
 CREATE INDEX IX_VoucherBarcode_Allocation
     ON dbo.VoucherBarcode (DepartmentType, Status, ImportedUtc, Id)
     INCLUDE (Code);

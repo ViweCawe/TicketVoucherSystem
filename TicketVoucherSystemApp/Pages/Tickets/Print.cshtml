@@ -1,0 +1,43 @@
+@page "{id:long}"
+@model TicketVoucherSystemApp.Pages.Tickets.PrintModel
+@{
+    ViewData["Title"] = $"Print ticket {Model.Issue.TicketNumber}";
+    var currency = System.Globalization.CultureInfo.GetCultureInfo("en-ZA");
+}
+
+<div class="print-actions">
+    <a class="button secondary" asp-page="/Operations/Issue">Issue next ticket</a>
+    <a class="button secondary" asp-page-handler="Barcode" asp-route-id="@Model.Issue.Id" asp-route-download="true">Download barcode</a>
+    <button class="button primary" type="button" onclick="window.print()">Print ticket</button>
+</div>
+
+<article class="print-ticket">
+    <header>
+        <span class="print-brand">TICKET VOUCHER</span>
+        <span class="print-package">@Model.Issue.PackageName</span>
+    </header>
+    <div class="print-ticket-body">
+        <section class="print-title">
+            <p>FAST TRACK ACCESS</p>
+            <h1>@Model.Issue.PackageName</h1>
+            <span>@Model.Issue.PackageDescription</span>
+        </section>
+        <section class="print-barcode">
+            <img src="@Url.Page("/Tickets/Print", "Barcode", new { id = Model.Issue.Id })" alt="Barcode @Model.Issue.TicketNumber" />
+            <strong>@Model.Issue.TicketNumber</strong>
+        </section>
+        <section class="print-benefits">
+            <h2>Included voucher benefits</h2>
+            @foreach (var benefit in Model.Benefits)
+            {
+                <div>
+                    <span>@benefit.DepartmentType</span>
+                    <strong>@benefit.PackageName</strong>
+                    <b>@benefit.Amount.ToString("C0", currency) OFF</b>
+                    <small>Valid until @benefit.ExpiresUtc.ToLocalTime().ToString("dd MMM yyyy")</small>
+                </div>
+            }
+        </section>
+    </div>
+    <footer><span>Issued @Model.Issue.IssuedUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span><span>Single redemption per benefit</span></footer>
+</article>

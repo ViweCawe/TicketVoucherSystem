@@ -2,7 +2,7 @@ CREATE TABLE dbo.Voucher
 (
     Id                  bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_Voucher PRIMARY KEY,
     PackageId           int NOT NULL,
-    BarcodeId           bigint NULL,
+    TicketIssueId       bigint NULL,
     Code                varchar(32) NOT NULL,
     DepartmentType      varchar(30) NOT NULL,
     Amount              decimal(12,2) NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE dbo.Voucher
     CancelledBy         nvarchar(256) NULL,
     RowVersion          rowversion NOT NULL,
     CONSTRAINT FK_Voucher_Package FOREIGN KEY (PackageId) REFERENCES dbo.VoucherPackage(Id),
-    CONSTRAINT FK_Voucher_Barcode FOREIGN KEY (BarcodeId) REFERENCES dbo.VoucherBarcode(Id),
+    CONSTRAINT FK_Voucher_TicketIssue FOREIGN KEY (TicketIssueId) REFERENCES dbo.TicketVoucherIssue(Id),
     CONSTRAINT FK_Voucher_RedeemedOutlet FOREIGN KEY (RedeemedOutletId) REFERENCES dbo.Outlet(Id),
     CONSTRAINT UQ_Voucher_Code_Department UNIQUE (Code, DepartmentType),
     CONSTRAINT CK_Voucher_Department CHECK (DepartmentType IN ('Retail', 'FoodAndBeverage')),
@@ -28,13 +28,9 @@ CREATE TABLE dbo.Voucher
     CONSTRAINT CK_Voucher_Dates CHECK (ExpiresUtc > IssuedUtc)
 );
 
-CREATE UNIQUE INDEX UX_Voucher_BarcodeId
-    ON dbo.Voucher (BarcodeId)
-    WHERE BarcodeId IS NOT NULL;
-
 CREATE INDEX IX_Voucher_Status_IssuedUtc
     ON dbo.Voucher (Status, IssuedUtc DESC)
-    INCLUDE (Code, PackageId, DepartmentType, Amount, ExpiresUtc, RedeemedUtc, RedeemedOutletId);
+    INCLUDE (Code, PackageId, DepartmentType, Amount, ExpiresUtc, RedeemedUtc, RedeemedOutletId, TicketIssueId);
 
 CREATE INDEX IX_Voucher_PackageId ON dbo.Voucher (PackageId);
 CREATE INDEX IX_Voucher_RedeemedOutletId ON dbo.Voucher (RedeemedOutletId, RedeemedUtc DESC)

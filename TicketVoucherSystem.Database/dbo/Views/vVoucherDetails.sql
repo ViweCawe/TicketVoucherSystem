@@ -3,7 +3,7 @@ AS
     SELECT
         v.Id,
         v.PackageId,
-        v.BarcodeId,
+        v.TicketIssueId,
         p.Name AS PackageName,
         v.Code,
         v.DepartmentType,

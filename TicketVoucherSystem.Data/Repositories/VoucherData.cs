@@ -29,16 +29,6 @@ public sealed class VoucherData(IDataAccess db) : IVoucherData
             "dbo.spVoucher_GetDashboard",
             cancellationToken: cancellationToken) ?? new VoucherDashboard();
 
-    public Task<IReadOnlyList<Voucher>> IssueAsync(
-        int packageId,
-        int quantity,
-        string userName,
-        CancellationToken cancellationToken = default) =>
-        db.QueryAsync<Voucher>(
-            "dbo.spVoucher_IssueBatch",
-            new { PackageId = packageId, Quantity = quantity, UserName = userName },
-            cancellationToken);
-
     public Task<Voucher?> RedeemAsync(
         string code,
         string departmentType,

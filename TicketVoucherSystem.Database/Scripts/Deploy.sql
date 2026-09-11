@@ -1,8 +1,12 @@
 :r ../dbo/Tables/VoucherPackage.sql
 GO
-:r ../dbo/Tables/VoucherBarcode.sql
-GO
 :r ../dbo/Tables/Outlet.sql
+GO
+:r ../dbo/Tables/TicketPackage.sql
+GO
+:r ../dbo/Tables/TicketPackageBenefit.sql
+GO
+:r ../dbo/Tables/TicketVoucherIssue.sql
 GO
 :r ../dbo/Tables/Voucher.sql
 GO
@@ -18,10 +22,6 @@ GO
 GO
 :r ../dbo/StoredProcedures/spVoucherPackage_SetActive.sql
 GO
-:r ../dbo/StoredProcedures/spVoucher_IssueBatch.sql
-GO
-:r ../dbo/StoredProcedures/spVoucher_ImportPairs.sql
-GO
 :r ../dbo/StoredProcedures/spVoucher_Redeem.sql
 GO
 :r ../dbo/StoredProcedures/spVoucher_Cancel.sql
@@ -36,11 +36,13 @@ GO
 GO
 :r ../dbo/StoredProcedures/spVoucher_GetDashboard.sql
 GO
-:r ../dbo/StoredProcedures/spVoucherBarcode_Import.sql
+:r ../dbo/StoredProcedures/spTicketPackage_GetActive.sql
 GO
-:r ../dbo/StoredProcedures/spVoucherBarcode_GetStock.sql
+:r ../dbo/StoredProcedures/spTicketVoucher_Issue.sql
 GO
-:r ../dbo/StoredProcedures/spVoucherBarcode_Search.sql
+:r ../dbo/StoredProcedures/spTicketVoucherIssue_GetById.sql
+GO
+:r ../dbo/StoredProcedures/spTicketVoucherIssue_GetVouchers.sql
 GO
 :r ../dbo/StoredProcedures/spOutlet_GetActive.sql
 GO

@@ -10,32 +10,17 @@ namespace TicketVoucherSystemApp.Services;
 
 public sealed class VoucherBarcodeExporter : IVoucherBarcodeExporter
 {
+    public byte[] CreateTicketSvg(string ticketNumber)
+    {
+        var document = CreateDocument(ticketNumber, height: 180);
+        return Encoding.UTF8.GetBytes(document.ToString(SaveOptions.DisableFormatting));
+    }
+
     public byte[] CreateSvg(Voucher voucher)
     {
-        var writer = new BarcodeWriterSvg
-        {
-            Format = BarcodeFormat.CODE_128,
-            Options = new EncodingOptions
-            {
-                Height = 160,
-                Width = 600,
-                Margin = 20,
-                PureBarcode = false
-            }
-        };
-
-        var document = XDocument.Parse(writer.Write(voucher.Code).Content);
+        var document = CreateDocument(voucher.Code, height: 230);
         var root = document.Root ?? throw new InvalidOperationException("Barcode SVG was empty.");
         var svg = root.Name.Namespace;
-
-        root.SetAttributeValue("height", "230");
-        var viewBox = root.Attribute("viewBox");
-        if (viewBox is not null)
-        {
-            var values = viewBox.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            values[^1] = "230";
-            viewBox.Value = string.Join(' ', values);
-        }
 
         root.Add(
             Label(svg, 190, $"{voucher.PackageName} - R{voucher.Amount:N2}", 18, bold: true),
@@ -70,4 +55,26 @@ public sealed class VoucherBarcodeExporter : IVoucherBarcodeExporter
             new XAttribute("font-size", size),
             bold ? new XAttribute("font-weight", "700") : null,
             text);
+
+    private static XDocument CreateDocument(string value, int height)
+    {
+        var writer = new BarcodeWriterSvg
+        {
+            Format = BarcodeFormat.CODE_128,
+            Options = new EncodingOptions { Height = 150, Width = 600, Margin = 20, PureBarcode = false }
+        };
+
+        var document = XDocument.Parse(writer.Write(value).Content);
+        var root = document.Root ?? throw new InvalidOperationException("Barcode SVG was empty.");
+        root.SetAttributeValue("height", height);
+        var viewBox = root.Attribute("viewBox");
+        if (viewBox is not null)
+        {
+            var values = viewBox.Value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            values[^1] = height.ToString();
+            viewBox.Value = string.Join(' ', values);
+        }
+
+        return document;
+    }
 }
