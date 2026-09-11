@@ -1,67 +1,64 @@
 @page
 @model TicketVoucherSystemApp.Pages.Reports.IndexModel
 @{
-    ViewData["Title"] = "Executive reports";
+    ViewData["Title"] = "Redemption intelligence";
     var currency = System.Globalization.CultureInfo.GetCultureInfo("en-ZA");
 }
 
-<div class="page-heading report-heading">
-    <div>
-        <p class="eyebrow">Management reporting</p>
-        <h1>Executive reports</h1>
-        <p>Voucher value, conversion, and department performance.</p>
+<header class="report-command">
+    <div><p class="eyebrow">Executive intelligence</p><h1>Where voucher value moves</h1><p>Management reporting centred on outlet performance and redemption behaviour.</p></div>
+    <div class="report-actions">
+        <nav class="segment-control" aria-label="Reporting period">@foreach (var days in new[] { 7, 30, 90 }) { <a class="@(Model.Days == days ? "active" : null)" asp-route-days="@days">@days days</a> }</nav>
+        <a class="button secondary" asp-page-handler="Csv" asp-route-days="@Model.Days">Export outlet CSV</a>
     </div>
-    <a class="button secondary" asp-page-handler="Csv" asp-route-days="@Model.Days">Export CSV</a>
-</div>
+</header>
 
-<nav class="segment-control" aria-label="Reporting period">
-    @foreach (var days in new[] { 7, 30, 90 })
-    {
-        <a class="@(Model.Days == days ? "active" : null)" asp-route-days="@days">@days days</a>
-    }
-</nav>
-
-<section class="kpi-grid report-kpis">
-    <article class="kpi kpi-blue"><span>Issued value</span><strong>@Model.Summary.IssuedValue.ToString("C0", currency)</strong><small>@Model.Summary.TotalIssued vouchers</small></article>
-    <article class="kpi kpi-teal"><span>Redeemed value</span><strong>@Model.Summary.RedeemedValue.ToString("C0", currency)</strong><small>@Model.Summary.TotalRedeemed vouchers</small></article>
-    <article class="kpi kpi-amber"><span>Outstanding</span><strong>@Model.Summary.OutstandingValue.ToString("C0", currency)</strong><small>@Model.Summary.TotalOutstanding vouchers</small></article>
-    <article class="kpi kpi-coral"><span>Conversion</span><strong>@Model.Summary.RedemptionRate.ToString("0.0")%</strong><small>@Model.Summary.RedeemedToday redeemed today</small></article>
+<section class="executive-strip">
+    <div><span>REDEEMED VALUE</span><strong>@Model.Summary.RedeemedValue.ToString("C0", currency)</strong></div>
+    <div><span>REDEMPTIONS</span><strong>@Model.Summary.TotalRedeemed</strong></div>
+    <div><span>CONVERSION</span><strong>@Model.Summary.RedemptionRate.ToString("0.0")%</strong></div>
+    <div><span>VALUE OUTSTANDING</span><strong>@Model.Summary.OutstandingValue.ToString("C0", currency)</strong></div>
 </section>
 
-<div class="report-grid">
-    <section class="panel report-chart">
-        <div class="panel-heading"><div><p class="eyebrow">Daily performance</p><h2>Voucher value movement</h2></div></div>
-        <div class="chart-legend"><span class="legend-issued">Issued value</span><span class="legend-redeemed">Redeemed value</span></div>
-        <div class="horizontal-chart">
-            @foreach (var day in Model.Trend)
+<div class="report-canvas">
+    <section class="report-line">
+        <div class="visual-heading"><div><p class="eyebrow">Line</p><h2>Redemption value over time</h2></div><span>@Model.Days DAYS</span></div>
+        <svg viewBox="0 0 700 220" role="img" aria-label="Redeemed voucher value trend">
+            <line x1="20" y1="190" x2="680" y2="190"></line><line x1="20" y1="112" x2="680" y2="112"></line><line x1="20" y1="35" x2="680" y2="35"></line>
+            @if (!string.IsNullOrEmpty(Model.LinePoints)) { <polyline points="@Model.LinePoints"></polyline> }
+        </svg>
+        <div class="line-summary"><span>Issued @Model.Summary.IssuedValue.ToString("C0", currency)</span><strong>Redeemed @Model.Summary.RedeemedValue.ToString("C0", currency)</strong></div>
+    </section>
+
+    <section class="report-pie">
+        <div class="visual-heading"><div><p class="eyebrow">Pie</p><h2>Outlet share</h2></div></div>
+        <div class="donut report-donut" style="@Model.DonutStyle"><span><strong>@Model.Outlets.Count</strong><small>outlets</small></span></div>
+        <div class="compact-legend">
+            @for (var index = 0; index < Model.Outlets.Count; index++)
             {
-                var issuedWidth = day.IssuedValue * 100 / Model.MaxDailyValue;
-                var redeemedWidth = day.RedeemedValue * 100 / Model.MaxDailyValue;
-                var issuedStyle = $"width:{issuedWidth.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%";
-                var redeemedStyle = $"width:{redeemedWidth.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%";
-                <div class="horizontal-row">
-                    <time>@day.ReportDate.ToString(Model.Days > 30 ? "dd MMM" : "ddd dd")</time>
-                    <span class="track"><i class="issued" style="@issuedStyle"></i></span>
-                    <span class="track"><i class="redeemed" style="@redeemedStyle"></i></span>
-                    <strong>@day.RedeemedValue.ToString("C0", currency)</strong>
-                </div>
+                var outlet = Model.Outlets[index];
+                <div><i style="background:@Model.Colors[index % Model.Colors.Count]"></i><span>@outlet.OutletName</span><strong>@outlet.SharePercent.ToString("0.0")%</strong></div>
             }
         </div>
     </section>
 
-    <section class="panel department-panel">
-        <div class="panel-heading"><div><p class="eyebrow">Business units</p><h2>Department performance</h2></div></div>
-        <div class="department-list">
-            @foreach (var department in Model.Departments)
+    <section class="report-bars">
+        <div class="visual-heading"><div><p class="eyebrow">Bar</p><h2>Redeemed value by outlet</h2></div></div>
+        <div class="outlet-bars">
+            @foreach (var outlet in Model.Outlets)
             {
-                var rate = department.IssuedCount == 0 ? 0 : department.RedeemedCount * 100m / department.IssuedCount;
-                var rateStyle = $"width:{rate.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%";
-                <article>
-                    <div><strong>@department.DepartmentType</strong><span>@department.RedeemedValue.ToString("C0", currency) redeemed</span></div>
-                    <div class="progress"><i style="@rateStyle"></i></div>
-                    <small>@rate.ToString("0.0")% conversion · @department.OutstandingCount outstanding</small>
-                </article>
+                var width = outlet.RedeemedValue * 100 / Model.MaxOutletValue;
+                var widthStyle = $"width:{width.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%";
+                <div><span>@outlet.OutletName</span><span class="bar-track"><i style="@widthStyle"></i></span><strong>@outlet.RedeemedValue.ToString("C0", currency)</strong></div>
             }
+            @if (Model.Outlets.Count == 0) { <p class="empty-copy">No redemption data for this period.</p> }
         </div>
+    </section>
+
+    <section class="report-table">
+        <div class="visual-heading"><div><p class="eyebrow">Detail</p><h2>Outlet performance</h2></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Outlet</th><th>Redemptions</th><th>Value</th><th>Share</th></tr></thead><tbody>
+        @foreach (var outlet in Model.Outlets) { <tr><td><strong>@outlet.OutletName</strong></td><td>@outlet.RedeemedCount</td><td>@outlet.RedeemedValue.ToString("C", currency)</td><td>@outlet.SharePercent.ToString("0.0")%</td></tr> }
+        </tbody></table></div>
     </section>
 </div>

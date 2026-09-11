@@ -29,6 +29,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddScoped<IDataAccess, SqlDataAccess>();
 builder.Services.AddScoped<IVoucherData, VoucherData>();
 builder.Services.AddScoped<IVoucherPackageData, VoucherPackageData>();
+builder.Services.AddScoped<IVoucherBarcodeData, VoucherBarcodeData>();
+builder.Services.AddScoped<IOutletData, OutletData>();
 builder.Services.AddScoped<IVoucherReportData, VoucherReportData>();
 builder.Services.AddScoped<IUserAdministration, UserAdministration>();
 builder.Services.AddSingleton<IVoucherBarcodeExporter, VoucherBarcodeExporter>();

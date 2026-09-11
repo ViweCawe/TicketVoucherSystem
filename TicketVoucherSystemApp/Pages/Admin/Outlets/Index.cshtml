@@ -1,0 +1,45 @@
+@page
+@model TicketVoucherSystemApp.Pages.Admin.Outlets.IndexModel
+@{
+    ViewData["Title"] = "Outlets";
+}
+
+<header class="command-heading">
+    <div><span class="command-index">O</span><p class="eyebrow">Redemption network</p><h1>Outlet directory</h1><p>These names appear in the redemption dropdown and management reports.</p></div>
+</header>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage)) { <div class="alert success">@Model.StatusMessage</div> }
+<div asp-validation-summary="ModelOnly" class="alert error"></div>
+
+<div class="directory-layout">
+    <form method="post" asp-page-handler="Save" class="directory-editor">
+        <h2>Add or update outlet</h2>
+        <input asp-for="Input.Id" type="hidden" />
+        <label class="field"><span>Outlet name</span><input asp-for="Input.Name" placeholder="Vista" /><span asp-validation-for="Input.Name" class="validation"></span></label>
+        <label class="field"><span>Short code</span><input asp-for="Input.Code" placeholder="VISTA" /><span asp-validation-for="Input.Code" class="validation"></span></label>
+        <label class="field"><span>Display order</span><input asp-for="Input.DisplayOrder" type="number" min="0" /></label>
+        <button class="button primary" type="submit">Save outlet</button>
+    </form>
+
+    <section class="directory-list">
+        <div class="directory-title"><span>OUTLET</span><span>STATUS</span><span>ORDER</span><span>ACTION</span></div>
+        @foreach (var outlet in Model.Outlets)
+        {
+            <article>
+                <span><strong>@outlet.Name</strong><small>@outlet.Code</small></span>
+                <span class="status @(outlet.IsActive ? "issued" : "cancelled")">@(outlet.IsActive ? "Active" : "Inactive")</span>
+                <span>@outlet.DisplayOrder</span>
+                <div class="directory-actions">
+                    <a class="text-link" asp-route-edit="@outlet.Id">Edit</a>
+                    <form method="post" asp-page-handler="Active">
+                        <input type="hidden" name="id" value="@outlet.Id" />
+                        <input type="hidden" name="isActive" value="@(!outlet.IsActive)" />
+                        <button class="button secondary small" type="submit">@(outlet.IsActive ? "Deactivate" : "Activate")</button>
+                    </form>
+                </div>
+            </article>
+        }
+    </section>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

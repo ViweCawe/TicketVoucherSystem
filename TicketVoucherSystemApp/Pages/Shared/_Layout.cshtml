@@ -52,7 +52,7 @@
                     @if (canIssue)
                     {
                         <a class="nav-link @(path.StartsWithSegments("/Operations/Issue") ? "active" : null)" asp-page="/Operations/Issue"><span>+</span>Issue vouchers</a>
-                        <a class="nav-link @(path.StartsWithSegments("/Operations/Import") ? "active" : null)" asp-page="/Operations/Import"><span>I</span>Import pairs</a>
+                        <a class="nav-link @(path.StartsWithSegments("/Operations/Import") ? "active" : null)" asp-page="/Operations/Import"><span>I</span>Barcode intake</a>
                     }
                     @if (canRedeem)
                     {
@@ -65,6 +65,8 @@
                         <span class="nav-label">Administration</span>
                         <a class="nav-link @(path.StartsWithSegments("/Admin/Vouchers") ? "active" : null)" asp-page="/Admin/Vouchers/Index"><span>V</span>Voucher register</a>
                         <a class="nav-link @(path.StartsWithSegments("/Admin/Packages") ? "active" : null)" asp-page="/Admin/Packages/Index"><span>P</span>Packages</a>
+                        <a class="nav-link @(path.StartsWithSegments("/Admin/Barcodes") ? "active" : null)" asp-page="/Admin/Barcodes/Index"><span>B</span>Barcode inventory</a>
+                        <a class="nav-link @(path.StartsWithSegments("/Admin/Outlets") ? "active" : null)" asp-page="/Admin/Outlets/Index"><span>O</span>Outlets</a>
                         <a class="nav-link @(path.StartsWithSegments("/Admin/Users") ? "active" : null)" asp-page="/Admin/Users/Index"><span>U</span>Users &amp; roles</a>
                     }
                 }

@@ -2,31 +2,43 @@
 @model TicketVoucherSystemApp.Pages.Operations.RedeemModel
 @{
     var isFood = Model.Department == VoucherDepartments.FoodAndBeverage;
-    ViewData["Title"] = isFood ? "F&B redeem" : "Retail redeem";
+    ViewData["Title"] = isFood ? "F&B redemption" : "Retail redemption";
 }
 
-<div class="redeem-shell">
-    <p class="eyebrow">@(isFood ? "Food & beverage" : "Retail") / redemption</p>
-    <h1>Scan @(isFood ? "F&B" : "retail") voucher<br />to redeem.</h1>
-    <p>Only matching, active vouchers can be redeemed on this page.</p>
-    <form method="post" class="redeem-form">
+<div class="redemption-station @(isFood ? "food-station" : "retail-station")">
+    <header>
+        <div><p class="eyebrow">Live redemption</p><h1>@(isFood ? "F&B" : "Retail") scan station</h1></div>
+        <span class="station-status"><i></i> Ready for scan</span>
+    </header>
+
+    <form method="post" class="station-console">
         <input asp-for="Department" type="hidden" />
-        <div asp-validation-summary="ModelOnly" class="validation"></div>
-        <label class="field">
-            <span>Redemption location</span>
-            <input asp-for="Location" placeholder="e.g. Upper Cable Station" autocomplete="organization" />
-        </label>
-        <label class="scan-field">
-            <span class="sr-only">Voucher barcode</span>
-            <input asp-for="Code" placeholder="Scan or enter voucher barcode" autofocus autocomplete="off" />
-            <button type="submit">Redeem</button>
-        </label>
-    </form>
-    @if (Model.RedeemedVoucher is not null)
-    {
-        <div class="success-message">
-            <strong>Voucher redeemed</strong>
-            <span>@Model.RedeemedVoucher.PackageName · @Model.RedeemedVoucher.Amount.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</span>
+        <div class="outlet-selector">
+            <label for="OutletId">Redeeming outlet</label>
+            <select asp-for="OutletId">
+                <option value="">Select the outlet once</option>
+                @foreach (var outlet in Model.Outlets)
+                {
+                    <option value="@outlet.Id">@outlet.Name</option>
+                }
+            </select>
+            <small>The selected outlet stays selected while you process the next tickets.</small>
         </div>
-    }
+        <div class="scan-console">
+            <span class="scan-prompt">SCAN</span>
+            <input asp-for="Code" placeholder="Scan or enter 10-digit barcode" autofocus autocomplete="off" />
+            <button type="submit">Redeem voucher</button>
+        </div>
+        <div asp-validation-summary="ModelOnly" class="station-message error"></div>
+        @if (Model.RedeemedVoucher is not null)
+        {
+            <div class="station-message success">
+                <span>REDEEMED</span>
+                <strong>@Model.RedeemedVoucher.Code</strong>
+                <span>@Model.RedeemedVoucher.PackageName at @Model.RedeemedVoucher.RedeemedAt</span>
+            </div>
+        }
+    </form>
+
+    <footer><span>OUTLET-CONTROLLED</span><span>TYPO-PROTECTED</span><span>AUDIT-READY</span></footer>
 </div>

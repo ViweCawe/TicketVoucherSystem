@@ -3,6 +3,7 @@ AS
     SELECT
         v.Id,
         v.PackageId,
+        v.BarcodeId,
         p.Name AS PackageName,
         v.Code,
         v.DepartmentType,
@@ -16,6 +17,7 @@ AS
         v.IssuedBy,
         v.ExpiresUtc,
         v.RedeemedUtc,
+        v.RedeemedOutletId,
         v.RedeemedAt,
         v.RedeemedBy
     FROM dbo.Voucher v

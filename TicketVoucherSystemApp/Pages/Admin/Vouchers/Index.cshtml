@@ -34,7 +34,7 @@
 <div class="table-wrap">
     <table>
         <thead>
-            <tr><th>Voucher</th><th>Package</th><th>Value</th><th>Issued</th><th>Status</th><th>Redeemed</th><th>Details</th></tr>
+            <tr><th>Voucher</th><th>Package</th><th>Value</th><th>Issued</th><th>Status</th><th>Redeemed</th><th>Redeemed at</th><th>Details</th></tr>
         </thead>
         <tbody>
             @foreach (var voucher in Model.Vouchers)
@@ -49,6 +49,7 @@
                     <td>@voucher.IssuedUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
                     <td><span class="status @voucher.Status.ToLowerInvariant()">@voucher.Status</span></td>
                     <td>@(voucher.RedeemedUtc?.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? "-")</td>
+                    <td>@(voucher.RedeemedAt ?? "-")</td>
                     <td><a class="text-link" asp-page="Details" asp-route-id="@voucher.Id">Open</a></td>
                 </tr>
             }

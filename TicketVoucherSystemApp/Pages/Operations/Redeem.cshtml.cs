@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using TicketVoucherSystem.Data.Exceptions;
-using TicketVoucherSystem.Data.Repositories;
 using TicketVoucherSystem.Data.Models;
+using TicketVoucherSystem.Data.Repositories;
 
 namespace TicketVoucherSystemApp.Pages.Operations;
 
-public sealed class RedeemModel(IVoucherData voucherData) : PageModel
+public sealed class RedeemModel(IVoucherData vouchers, IOutletData outlets) : PageModel
 {
     [BindProperty(SupportsGet = true)]
     public string Department { get; set; } = VoucherDepartments.Retail;
@@ -15,35 +15,32 @@ public sealed class RedeemModel(IVoucherData voucherData) : PageModel
     public string Code { get; set; } = string.Empty;
 
     [BindProperty]
-    public string Location { get; set; } = string.Empty;
+    public int OutletId { get; set; }
 
+    public IReadOnlyList<Outlet> Outlets { get; private set; } = [];
     public Voucher? RedeemedVoucher { get; private set; }
 
-    public void OnGet()
-    {
-        if (!VoucherDepartments.All.Contains(Department))
-        {
-            Department = VoucherDepartments.Retail;
-        }
-    }
+    public async Task OnGetAsync(CancellationToken cancellationToken) => await LoadAsync(cancellationToken);
 
     public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
     {
-        OnGet();
-        if (string.IsNullOrWhiteSpace(Code) || string.IsNullOrWhiteSpace(Location))
+        await LoadAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(Code) || OutletId <= 0)
         {
-            ModelState.AddModelError(string.Empty, "Enter the voucher barcode and redemption location.");
+            ModelState.AddModelError(string.Empty, "Select an outlet and scan the voucher barcode.");
             return Page();
         }
 
         try
         {
-            RedeemedVoucher = await voucherData.RedeemAsync(
+            RedeemedVoucher = await vouchers.RedeemAsync(
                 Code,
                 Department,
-                Location,
+                OutletId,
                 User.Identity?.Name ?? "System",
                 cancellationToken);
+            Code = string.Empty;
+            ModelState.Remove(nameof(Code));
         }
         catch (VoucherOperationException exception)
         {
@@ -51,5 +48,15 @@ public sealed class RedeemModel(IVoucherData voucherData) : PageModel
         }
 
         return Page();
+    }
+
+    private async Task LoadAsync(CancellationToken cancellationToken)
+    {
+        if (!VoucherDepartments.All.Contains(Department))
+        {
+            Department = VoucherDepartments.Retail;
+        }
+
+        Outlets = await outlets.GetActiveAsync(cancellationToken);
     }
 }

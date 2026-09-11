@@ -1,4 +1,3 @@
-using System.Text.Json;
 using TicketVoucherSystem.Data.Sql;
 using TicketVoucherSystem.Data.Models;
 
@@ -43,12 +42,12 @@ public sealed class VoucherData(IDataAccess db) : IVoucherData
     public Task<Voucher?> RedeemAsync(
         string code,
         string departmentType,
-        string location,
+        int outletId,
         string userName,
         CancellationToken cancellationToken = default) =>
         db.QuerySingleOrDefaultAsync<Voucher>(
             "dbo.spVoucher_Redeem",
-            new { Code = code.Trim(), DepartmentType = departmentType, Location = location.Trim(), UserName = userName },
+            new { Code = code.Trim(), DepartmentType = departmentType, OutletId = outletId, UserName = userName },
             cancellationToken);
 
     public async Task CancelAsync(
@@ -63,20 +62,4 @@ public sealed class VoucherData(IDataAccess db) : IVoucherData
             cancellationToken);
     }
 
-    public async Task<VoucherImportResult> ImportPairsAsync(
-        IReadOnlyList<string> codes,
-        int retailPackageId,
-        int foodPackageId,
-        string userName,
-        CancellationToken cancellationToken = default) =>
-        await db.QuerySingleOrDefaultAsync<VoucherImportResult>(
-            "dbo.spVoucher_ImportPairs",
-            new
-            {
-                CodesJson = JsonSerializer.Serialize(codes),
-                RetailPackageId = retailPackageId,
-                FoodPackageId = foodPackageId,
-                UserName = userName
-            },
-            cancellationToken) ?? new VoucherImportResult();
 }

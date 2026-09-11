@@ -29,5 +29,13 @@ public sealed class VoucherReportData(IDataAccess db) : IVoucherReportData
             new { Days = NormaliseDays(days) },
             cancellationToken);
 
+    public Task<IReadOnlyList<VoucherOutletReport>> GetOutletsAsync(
+        int days,
+        CancellationToken cancellationToken = default) =>
+        db.QueryAsync<VoucherOutletReport>(
+            "dbo.spReport_GetOutletPerformance",
+            new { Days = NormaliseDays(days) },
+            cancellationToken);
+
     private static int NormaliseDays(int days) => days is 7 or 30 or 90 ? days : 30;
 }

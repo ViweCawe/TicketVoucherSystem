@@ -1,0 +1,40 @@
+@page
+@model TicketVoucherSystemApp.Pages.Admin.Barcodes.IndexModel
+@{
+    ViewData["Title"] = "Barcode inventory";
+}
+
+<header class="command-heading">
+    <div><span class="command-index">B</span><p class="eyebrow">Physical ticket control</p><h1>Barcode inventory</h1><p>Track which imported codes are still available and which have been allocated.</p></div>
+    <a class="button primary" asp-page="/Operations/Import">Import barcodes</a>
+</header>
+
+<section class="stock-ribbon compact-stock">
+    <div><span>Retail available</span><strong>@Model.Stock.AvailableRetail</strong></div>
+    <div><span>F&amp;B available</span><strong>@Model.Stock.AvailableFoodAndBeverage</strong></div>
+    <div><span>Retail allocated</span><strong>@Model.Stock.AssignedRetail</strong></div>
+    <div><span>F&amp;B allocated</span><strong>@Model.Stock.AssignedFoodAndBeverage</strong></div>
+</section>
+
+<form method="get" class="filter-bar">
+    <input name="search" value="@Model.Search" placeholder="Search barcode" />
+    <select name="status">
+        <option value="">All stock</option>
+        <option value="Available" selected="@(Model.Status == "Available" ? "selected" : null)">Available</option>
+        <option value="Assigned" selected="@(Model.Status == "Assigned" ? "selected" : null)">Assigned</option>
+        <option value="Retired" selected="@(Model.Status == "Retired" ? "selected" : null)">Retired</option>
+    </select>
+    <button class="button secondary" type="submit">Filter</button>
+</form>
+
+<div class="table-wrap">
+    <table>
+        <thead><tr><th>Barcode</th><th>Benefit</th><th>Status</th><th>Imported</th><th>Allocated</th></tr></thead>
+        <tbody>
+            @foreach (var barcode in Model.Barcodes)
+            {
+                <tr><td><strong>@barcode.Code</strong><small>@barcode.ImportedBy</small></td><td>@barcode.DepartmentType</td><td><span class="status @barcode.Status.ToLowerInvariant()">@barcode.Status</span></td><td>@barcode.ImportedUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td><td>@(barcode.AssignedUtc?.ToLocalTime().ToString("dd MMM yyyy HH:mm") ?? "-")</td></tr>
+            }
+        </tbody>
+    </table>
+</div>

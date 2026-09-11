@@ -1,108 +1,77 @@
 @page
 @model TicketVoucherSystemApp.Pages.Operations.IssueModel
 @{
-    ViewData["Title"] = "Issue vouchers";
-    var batchRoutes = Model.IssuedVouchers
-        .Select((voucher, index) => new { voucher.Id, Index = index })
+    ViewData["Title"] = "Voucher allocation";
+    var currency = System.Globalization.CultureInfo.GetCultureInfo("en-ZA");
+    var batchRoutes = Model.IssuedVouchers.Select((voucher, index) => new { voucher.Id, Index = index })
         .ToDictionary(item => $"ids[{item.Index}]", item => item.Id.ToString());
 }
 
-<div class="page-heading">
+<header class="command-heading">
     <div>
-        <p class="eyebrow">Voucher operations</p>
-        <h1>Issue vouchers</h1>
-        <p>Create customer-ready vouchers and download their barcodes.</p>
+        <span class="command-index">02</span>
+        <p class="eyebrow">Barcode allocation</p>
+        <h1>Build vouchers from available tickets</h1>
+        <p>Choose the benefit. The system reserves the oldest matching barcode stock.</p>
     </div>
-    <a class="button secondary" asp-page="/Operations/Import">Import paired barcodes</a>
-</div>
+    <a class="button secondary" asp-page="/Operations/Import">Load more barcodes</a>
+</header>
 
-<div class="workspace-grid">
-    <section class="workspace-primary">
-        <form method="post" class="issue-form">
-            <div asp-validation-summary="ModelOnly" class="validation"></div>
-            <fieldset class="package-list">
-                <legend>Choose a package</legend>
+<div class="allocation-layout">
+    <section class="allocation-board">
+        <div class="inventory-header">
+            <div><span>Retail capacity</span><strong>@Model.Stock.AvailableRetail</strong></div>
+            <div><span>F&amp;B capacity</span><strong>@Model.Stock.AvailableFoodAndBeverage</strong></div>
+            <div class="inventory-rule"><span>Rule</span><strong>Existing codes only</strong></div>
+        </div>
+        <form method="post" class="allocation-form">
+            <div asp-validation-summary="ModelOnly" class="alert error"></div>
+            <div class="package-matrix">
                 @foreach (var package in Model.Packages)
                 {
-                    <label class="package-option">
+                    <label class="package-cell">
                         <input asp-for="PackageId" type="radio" value="@package.Id" />
-                        <span>
-                            <strong>@package.Name</strong>
-                            <small>@package.Description</small>
-                        </span>
-                        <b>@package.Amount.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</b>
+                        <span class="package-department">@package.DepartmentType</span>
+                        <strong>@package.Name</strong>
+                        <small>@package.Description</small>
+                        <b>@package.Amount.ToString("C0", currency)</b>
                     </label>
                 }
-            </fieldset>
-            <label class="field compact">
-                <span>Quantity</span>
-                <input asp-for="Quantity" type="number" min="1" max="100" />
-                <small>Issue up to 100 vouchers in one batch.</small>
-            </label>
-            <button class="button primary wide" type="submit">Issue vouchers</button>
+            </div>
+            <div class="allocation-footer">
+                <label class="quantity-control"><span>Quantity</span><input asp-for="Quantity" type="number" min="1" max="100" /></label>
+                <div><small>Allocation and voucher creation happen in one transaction.</small><button class="button primary" type="submit">Allocate and issue</button></div>
+            </div>
         </form>
     </section>
 
-    <aside class="inspector">
-        <div class="section-heading">
-            <div>
-                <p class="eyebrow">Live register</p>
-                <h2>Recent vouchers</h2>
-            </div>
-            @if (User.IsInRole("Admin"))
-            {
-                <a class="text-link" asp-page="/Admin/Vouchers/Index">View all</a>
-            }
-        </div>
-        <div class="voucher-list">
-            @foreach (var voucher in Model.RecentVouchers)
-            {
+    <aside class="activity-rail">
+        <div class="panel-heading"><div><p class="eyebrow">Latest allocations</p><h2>Voucher stream</h2></div></div>
+        @foreach (var voucher in Model.RecentVouchers)
+        {
+            <div class="stream-row">
+                <span class="stream-time">@voucher.IssuedUtc.ToLocalTime().ToString("HH:mm")</span>
+                <span><strong>@voucher.Code</strong><small>@voucher.PackageName</small></span>
+                <span class="status @voucher.Status.ToLowerInvariant()">@voucher.Status</span>
                 @if (User.IsInRole("Admin"))
                 {
-                    <a class="voucher-row" asp-page="/Admin/Vouchers/Details" asp-route-id="@voucher.Id" title="Open voucher details">
-                        <span class="voucher-icon">@voucher.DepartmentType[0]</span>
-                        <span>
-                            <strong>@voucher.Amount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</strong>
-                            <small>@voucher.PackageName · @(voucher.Code.Length > 6 ? voucher.Code[^6..] : voucher.Code)</small>
-                        </span>
-                        <span class="status @voucher.Status.ToLowerInvariant()">@voucher.Status</span>
-                    </a>
+                    <a asp-page="/Admin/Vouchers/Details" asp-route-id="@voucher.Id">Open</a>
                 }
-                else
-                {
-                    <div class="voucher-row">
-                        <span class="voucher-icon">@voucher.DepartmentType[0]</span>
-                        <span>
-                            <strong>@voucher.Amount.ToString("C0", System.Globalization.CultureInfo.GetCultureInfo("en-ZA"))</strong>
-                            <small>@voucher.PackageName · @(voucher.Code.Length > 6 ? voucher.Code[^6..] : voucher.Code)</small>
-                        </span>
-                        <span class="status @voucher.Status.ToLowerInvariant()">@voucher.Status</span>
-                    </div>
-                }
-            }
-        </div>
+            </div>
+        }
     </aside>
 </div>
 
 @if (Model.IssuedVouchers.Count > 0)
 {
-    <dialog class="result-dialog" open>
-        <div class="dialog-heading">
-            <div>
-                <p class="eyebrow">Ready to send</p>
-                <h2>@Model.IssuedVouchers.Count voucher(s) issued</h2>
-            </div>
-            <button class="icon-button" type="button" data-close-dialog aria-label="Close">×</button>
-        </div>
+    <dialog class="result-dialog allocation-result" open>
+        <div class="dialog-heading"><div><p class="eyebrow">Allocation complete</p><h2>@Model.IssuedVouchers.Count voucher(s) ready</h2></div><button class="icon-button" type="button" data-close-dialog aria-label="Close">x</button></div>
         <div class="issued-list">
             @foreach (var voucher in Model.IssuedVouchers)
             {
-                <div>
-                    <span><strong>@voucher.PackageName</strong><small>@voucher.Code</small></span>
-                    <a class="button secondary small" asp-page-handler="Barcode" asp-route-id="@voucher.Id">Download barcode</a>
-                </div>
+                <div><span><strong>@voucher.Code</strong><small>@voucher.PackageName</small></span><a class="button secondary small" asp-page-handler="Barcode" asp-route-id="@voucher.Id">Download</a></div>
             }
         </div>
-        <a class="button primary wide" asp-page-handler="Batch" asp-all-route-data="batchRoutes">Download all (.zip)</a>
+        <a class="button primary wide" asp-page-handler="Batch" asp-all-route-data="batchRoutes">Download all barcodes (.zip)</a>
     </dialog>
 }

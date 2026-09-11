@@ -1,5 +1,9 @@
 :r ../dbo/Tables/VoucherPackage.sql
 GO
+:r ../dbo/Tables/VoucherBarcode.sql
+GO
+:r ../dbo/Tables/Outlet.sql
+GO
 :r ../dbo/Tables/Voucher.sql
 GO
 :r ../dbo/Tables/VoucherEvent.sql
@@ -32,11 +36,27 @@ GO
 GO
 :r ../dbo/StoredProcedures/spVoucher_GetDashboard.sql
 GO
+:r ../dbo/StoredProcedures/spVoucherBarcode_Import.sql
+GO
+:r ../dbo/StoredProcedures/spVoucherBarcode_GetStock.sql
+GO
+:r ../dbo/StoredProcedures/spVoucherBarcode_Search.sql
+GO
+:r ../dbo/StoredProcedures/spOutlet_GetActive.sql
+GO
+:r ../dbo/StoredProcedures/spOutlet_GetAll.sql
+GO
+:r ../dbo/StoredProcedures/spOutlet_Save.sql
+GO
+:r ../dbo/StoredProcedures/spOutlet_SetActive.sql
+GO
 :r ../dbo/StoredProcedures/spReport_GetExecutiveSummary.sql
 GO
 :r ../dbo/StoredProcedures/spReport_GetVoucherTrend.sql
 GO
 :r ../dbo/StoredProcedures/spReport_GetDepartmentPerformance.sql
+GO
+:r ../dbo/StoredProcedures/spReport_GetOutletPerformance.sql
 GO
 :r ./PostDeployment.sql
 GO

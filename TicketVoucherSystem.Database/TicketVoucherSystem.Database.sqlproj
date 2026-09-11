@@ -56,6 +56,8 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\VoucherPackage.sql" />
+    <Build Include="dbo\Tables\VoucherBarcode.sql" />
+    <Build Include="dbo\Tables\Outlet.sql" />
     <Build Include="dbo\Tables\Voucher.sql" />
     <Build Include="dbo\Tables\VoucherEvent.sql" />
     <Build Include="dbo\Views\vVoucherDetails.sql" />
@@ -72,10 +74,20 @@
     <Build Include="dbo\StoredProcedures\spVoucher_GetById.sql" />
     <Build Include="dbo\StoredProcedures\spVoucherEvent_GetByVoucherId.sql" />
     <Build Include="dbo\StoredProcedures\spVoucher_GetDashboard.sql" />
+    <Build Include="dbo\StoredProcedures\spVoucherBarcode_Import.sql" />
+    <Build Include="dbo\StoredProcedures\spVoucherBarcode_GetStock.sql" />
+    <Build Include="dbo\StoredProcedures\spVoucherBarcode_Search.sql" />
+    <Build Include="dbo\StoredProcedures\spOutlet_GetActive.sql" />
+    <Build Include="dbo\StoredProcedures\spOutlet_GetAll.sql" />
+    <Build Include="dbo\StoredProcedures\spOutlet_Save.sql" />
+    <Build Include="dbo\StoredProcedures\spOutlet_SetActive.sql" />
     <Build Include="dbo\StoredProcedures\spReport_GetExecutiveSummary.sql" />
     <Build Include="dbo\StoredProcedures\spReport_GetVoucherTrend.sql" />
     <Build Include="dbo\StoredProcedures\spReport_GetDepartmentPerformance.sql" />
+    <Build Include="dbo\StoredProcedures\spReport_GetOutletPerformance.sql" />
     <PostDeploy Include="Scripts\PostDeployment.sql" />
     <None Include="Scripts\Deploy.sql" />
+    <None Include="Scripts\Upgrade-Barcode-Outlets.sql" />
+    <None Include="Scripts\Upgrade-ExecutiveReporting.sql" />
   </ItemGroup>
 </Project>

@@ -1,23 +1,21 @@
 CREATE PROCEDURE dbo.spVoucher_Redeem
     @Code varchar(32),
     @DepartmentType varchar(30),
-    @Location nvarchar(120),
+    @OutletId int,
     @UserName nvarchar(256)
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    DECLARE @VoucherId bigint,
-            @Status varchar(20),
-            @ExpiresUtc datetime2(0);
+    DECLARE @VoucherId bigint, @Status varchar(20), @ExpiresUtc datetime2(0), @OutletName nvarchar(120);
+    SELECT @OutletName = Name FROM dbo.Outlet WHERE Id = @OutletId AND IsActive = 1;
+    IF @OutletName IS NULL
+        THROW 50006, 'Select an active redemption outlet.', 1;
 
     BEGIN TRANSACTION;
 
-    SELECT
-        @VoucherId = Id,
-        @Status = Status,
-        @ExpiresUtc = ExpiresUtc
+    SELECT @VoucherId = Id, @Status = Status, @ExpiresUtc = ExpiresUtc
     FROM dbo.Voucher WITH (UPDLOCK, HOLDLOCK)
     WHERE Code = @Code AND DepartmentType = @DepartmentType;
 
@@ -45,7 +43,7 @@ BEGIN
         BEGIN
             UPDATE dbo.Voucher SET Status = 'Expired' WHERE Id = @VoucherId;
             INSERT dbo.VoucherEvent (VoucherId, EventType, PerformedBy, Location, Notes)
-            VALUES (@VoucherId, 'Expired', @UserName, @Location, 'Redemption rejected because the voucher had expired.');
+            VALUES (@VoucherId, 'Expired', @UserName, @OutletName, 'Redemption rejected because the voucher had expired.');
         END;
 
         COMMIT TRANSACTION;
@@ -53,10 +51,8 @@ BEGIN
     END;
 
     UPDATE dbo.Voucher
-    SET Status = 'Redeemed',
-        RedeemedUtc = SYSUTCDATETIME(),
-        RedeemedAt = @Location,
-        RedeemedBy = @UserName
+    SET Status = 'Redeemed', RedeemedUtc = SYSUTCDATETIME(), RedeemedOutletId = @OutletId,
+        RedeemedAt = @OutletName, RedeemedBy = @UserName
     WHERE Id = @VoucherId AND Status = 'Issued';
 
     IF @@ROWCOUNT <> 1
@@ -66,9 +62,8 @@ BEGIN
     END;
 
     INSERT dbo.VoucherEvent (VoucherId, EventType, PerformedBy, Location)
-    VALUES (@VoucherId, 'Redeemed', @UserName, @Location);
+    VALUES (@VoucherId, 'Redeemed', @UserName, @OutletName);
 
     COMMIT TRANSACTION;
-
     SELECT * FROM dbo.vVoucherDetails WHERE Id = @VoucherId;
 END;

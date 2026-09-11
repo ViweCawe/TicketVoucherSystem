@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Voucher Control</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="identity-body">
+    <header class="identity-topbar">
+        <a asp-page="/Index" asp-area=""><span>TV</span><strong>Voucher Control</strong></a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a class="identity-back" asp-page="/Dashboard/Index" asp-area="">Return to dashboard</a>
+        }
+    </header>
+
+    <main class="identity-shell">
+        <section class="identity-context">
+            <span class="identity-number">SECURE / 01</span>
+            <div>
+                <p>CONTROLLED ACCESS</p>
+                <h1>One account.<br />Every voucher action accounted for.</h1>
+            </div>
+            <dl>
+                <div><dt>01</dt><dd>Role-based operations</dd></div>
+                <div><dt>02</dt><dd>Audited redemptions</dd></div>
+                <div><dt>03</dt><dd>Outlet-level reporting</dd></div>
+            </dl>
+        </section>
+        <section class="identity-card">
+            <div class="identity-card-label">TICKET VOUCHER SYSTEM</div>
+            @RenderBody()
+        </section>
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

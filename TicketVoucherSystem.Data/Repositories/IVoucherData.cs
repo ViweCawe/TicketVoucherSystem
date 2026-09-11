@@ -10,7 +10,6 @@ public interface IVoucherData
     Task<IReadOnlyList<VoucherEvent>> GetEventsAsync(long voucherId, CancellationToken cancellationToken = default);
     Task<VoucherDashboard> GetDashboardAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Voucher>> IssueAsync(int packageId, int quantity, string userName, CancellationToken cancellationToken = default);
-    Task<Voucher?> RedeemAsync(string code, string departmentType, string location, string userName, CancellationToken cancellationToken = default);
+    Task<Voucher?> RedeemAsync(string code, string departmentType, int outletId, string userName, CancellationToken cancellationToken = default);
     Task CancelAsync(long id, string reason, string userName, CancellationToken cancellationToken = default);
-    Task<VoucherImportResult> ImportPairsAsync(IReadOnlyList<string> codes, int retailPackageId, int foodPackageId, string userName, CancellationToken cancellationToken = default);
 }
