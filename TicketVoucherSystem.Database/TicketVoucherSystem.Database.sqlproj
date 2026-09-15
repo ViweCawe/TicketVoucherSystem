@@ -6,7 +6,7 @@
     <Name>TicketVoucherSystem.Database</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
-    <ProjectGuid>{81B6C093-A9D5-49D7-91DB-89576B92B6A3}</ProjectGuid>
+    <ProjectGuid>{81b6c093-a9d5-49d7-91db-89576b92b6a3}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql150DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootNamespace>TicketVoucherSystem.Database</RootNamespace>

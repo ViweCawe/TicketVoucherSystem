@@ -27,11 +27,12 @@ CREATE TABLE dbo.Voucher
     CONSTRAINT CK_Voucher_Amount CHECK (Amount > 0),
     CONSTRAINT CK_Voucher_Dates CHECK (ExpiresUtc > IssuedUtc)
 );
-
+GO
 CREATE INDEX IX_Voucher_Status_IssuedUtc
     ON dbo.Voucher (Status, IssuedUtc DESC)
     INCLUDE (Code, PackageId, DepartmentType, Amount, ExpiresUtc, RedeemedUtc, RedeemedOutletId, TicketIssueId);
-
+GO
 CREATE INDEX IX_Voucher_PackageId ON dbo.Voucher (PackageId);
+GO
 CREATE INDEX IX_Voucher_RedeemedOutletId ON dbo.Voucher (RedeemedOutletId, RedeemedUtc DESC)
     INCLUDE (Amount, DepartmentType);
