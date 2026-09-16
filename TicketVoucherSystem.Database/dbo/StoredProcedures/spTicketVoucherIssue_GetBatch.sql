@@ -1,5 +1,5 @@
-CREATE PROCEDURE dbo.spTicketVoucherIssue_GetById
-    @Id bigint
+CREATE PROCEDURE dbo.spTicketVoucherIssue_GetBatch
+    @BatchId uniqueidentifier
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -7,5 +7,6 @@ BEGIN
            ticketPackage.Description AS PackageDescription, issue.TicketNumber, issue.IssuedUtc, issue.IssuedBy
     FROM dbo.TicketVoucherIssue issue
     INNER JOIN dbo.TicketPackage ticketPackage ON ticketPackage.Id = issue.TicketPackageId
-    WHERE issue.Id = @Id;
+    WHERE issue.BatchId = @BatchId
+    ORDER BY issue.Id;
 END;

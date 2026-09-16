@@ -4,15 +4,15 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using TicketVoucherSystem.Data.Exceptions;
 using TicketVoucherSystem.Data.Models;
 using TicketVoucherSystem.Data.Repositories;
+using TicketVoucherSystem.Data.Validation;
 
 namespace TicketVoucherSystemApp.Pages.Operations;
 
 public sealed class IssueModel(ITicketVoucherData tickets) : PageModel
 {
     [BindProperty]
-    [Required, StringLength(32, MinimumLength = 6)]
-    [RegularExpression("^[0-9A-Za-z-]+$", ErrorMessage = "Use only letters, numbers, and hyphens.")]
-    public string TicketNumber { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Scan or enter at least one ticket barcode.")]
+    public string TicketNumbers { get; set; } = string.Empty;
 
     [BindProperty]
     [Range(1, int.MaxValue, ErrorMessage = "Choose a ticket package.")]
@@ -24,6 +24,19 @@ public sealed class IssueModel(ITicketVoucherData tickets) : PageModel
 
     public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
     {
+        IReadOnlyList<string> ticketNumbers = [];
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                ticketNumbers = TicketNumberList.Parse(TicketNumbers);
+            }
+            catch (ArgumentException exception)
+            {
+                ModelState.AddModelError(nameof(TicketNumbers), exception.Message);
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             await LoadAsync(cancellationToken);
@@ -32,20 +45,21 @@ public sealed class IssueModel(ITicketVoucherData tickets) : PageModel
 
         try
         {
-            var vouchers = await tickets.IssueAsync(
-                TicketNumber,
+            var issues = await tickets.IssueBatchAsync(
+                ticketNumbers,
                 TicketPackageId,
                 User.Identity?.Name ?? "System",
                 cancellationToken);
-            var issueId = vouchers.FirstOrDefault()?.TicketIssueId;
-            if (!issueId.HasValue)
+
+            var batchId = issues.FirstOrDefault()?.BatchId;
+            if (!batchId.HasValue || batchId == Guid.Empty)
             {
                 ModelState.AddModelError(string.Empty, "The ticket package did not create any voucher benefits.");
                 await LoadAsync(cancellationToken);
                 return Page();
             }
 
-            return RedirectToPage("/Tickets/Print", new { id = issueId.Value });
+            return RedirectToPage("/Tickets/PrintBatch", new { batchId });
         }
         catch (VoucherOperationException exception)
         {

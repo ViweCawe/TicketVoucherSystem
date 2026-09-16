@@ -1,48 +1,56 @@
 @page
 @model TicketVoucherSystemApp.Pages.Operations.IssueModel
 @{
-    ViewData["Title"] = "Attach voucher package";
+    ViewData["Title"] = "Issue ticket package";
 }
 
-<header class="ticket-issue-heading">
-    <p class="eyebrow">Ticket voucher issue</p>
-    <h1>Scan the ticket.<br />Attach the benefits.</h1>
-    <p>The ticket already owns the barcode. This system only adds the purchased voucher package.</p>
+<header class="group-issue-heading">
+    <div>
+        <p class="eyebrow">Manual ticket issue</p>
+        <h1>One package.<br />One or many tickets.</h1>
+    </div>
+    <p>Scan the existing ticket barcodes and attach the same purchased package to the complete group.</p>
 </header>
 
-<form method="post" class="ticket-issue-console">
+<form method="post" class="group-issue-console">
     <div asp-validation-summary="ModelOnly" class="alert error"></div>
-    <section class="ticket-scan-step">
-        <span class="step-number">01</span>
-        <div>
-            <label for="TicketNumber">Existing ticket barcode</label>
-            <div class="ticket-scan-input"><span>SCAN</span><input asp-for="TicketNumber" placeholder="Scan or enter ticket number" autofocus autocomplete="off" /></div>
-            <span asp-validation-for="TicketNumber" class="validation"></span>
-        </div>
-    </section>
 
-    <section class="ticket-package-step">
-        <span class="step-number">02</span>
-        <div>
-            <h2>Purchased package</h2>
-            <div class="ticket-package-list">
-                @foreach (var package in Model.Packages)
-                {
-                    <label>
-                        <input asp-for="TicketPackageId" type="radio" value="@package.Id" />
-                        <span><strong>@package.Name</strong><small>@package.Description</small><b>@package.BenefitSummary</b></span>
-                        <em>@package.BenefitCount benefits</em>
-                    </label>
-                }
-            </div>
-            <span asp-validation-for="TicketPackageId" class="validation"></span>
-        </div>
-    </section>
+    <label class="group-field">
+        <span>Ticket package</span>
+        <select asp-for="TicketPackageId">
+            <option value="">Choose the purchased package</option>
+            @foreach (var package in Model.Packages)
+            {
+                <option value="@package.Id">@package.Name - @package.BenefitSummary</option>
+            }
+        </select>
+        <small>The selected package will be attached to every barcode below.</small>
+        <span asp-validation-for="TicketPackageId" class="validation"></span>
+    </label>
+
+    <label class="group-field barcode-list-field">
+        <span>Existing ticket barcodes</span>
+        <textarea asp-for="TicketNumbers" rows="12" placeholder="Scan each ticket and press Enter" autofocus autocomplete="off"></textarea>
+        <small><strong id="ticket-count">0 tickets</strong><span>Maximum 100 per issue</span></small>
+        <span asp-validation-for="TicketNumbers" class="validation"></span>
+    </label>
 
     <footer>
-        <span>The next screen is a clean printable ticket page with the same barcode.</span>
-        <button class="button primary" type="submit">Attach package and continue</button>
+        <span>All barcodes are validated before anything is issued.</span>
+        <button class="button primary" type="submit">Issue package to tickets</button>
     </footer>
 </form>
 
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const ticketInput = document.getElementById('TicketNumbers');
+        const ticketCount = document.getElementById('ticket-count');
+        const updateCount = () => {
+            const count = ticketInput.value.split(/[\s,;]+/).filter(Boolean).length;
+            ticketCount.textContent = `${count} ${count === 1 ? 'ticket' : 'tickets'}`;
+        };
+        ticketInput.addEventListener('input', updateCount);
+        updateCount();
+    </script>
+}

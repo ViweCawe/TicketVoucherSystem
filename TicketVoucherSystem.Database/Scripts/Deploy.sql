@@ -38,11 +38,23 @@ GO
 GO
 :r ../dbo/StoredProcedures/spTicketPackage_GetActive.sql
 GO
+:r ../dbo/StoredProcedures/spTicketPackage_GetAll.sql
+GO
+:r ../dbo/StoredProcedures/spTicketPackage_Save.sql
+GO
+:r ../dbo/StoredProcedures/spTicketPackage_SetActive.sql
+GO
 :r ../dbo/StoredProcedures/spTicketVoucher_Issue.sql
+GO
+:r ../dbo/StoredProcedures/spTicketVoucher_IssueBatch.sql
 GO
 :r ../dbo/StoredProcedures/spTicketVoucherIssue_GetById.sql
 GO
 :r ../dbo/StoredProcedures/spTicketVoucherIssue_GetVouchers.sql
+GO
+:r ../dbo/StoredProcedures/spTicketVoucherIssue_GetBatch.sql
+GO
+:r ../dbo/StoredProcedures/spTicketVoucherIssue_GetBatchVouchers.sql
 GO
 :r ../dbo/StoredProcedures/spOutlet_GetActive.sql
 GO

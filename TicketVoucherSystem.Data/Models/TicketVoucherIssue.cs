@@ -3,6 +3,7 @@ namespace TicketVoucherSystem.Data.Models;
 public sealed class TicketVoucherIssue
 {
     public long Id { get; set; }
+    public Guid BatchId { get; set; }
     public int TicketPackageId { get; set; }
     public string PackageName { get; set; } = string.Empty;
     public string PackageDescription { get; set; } = string.Empty;

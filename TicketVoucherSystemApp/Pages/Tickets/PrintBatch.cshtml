@@ -1,0 +1,39 @@
+@page "{batchId:guid}"
+@model TicketVoucherSystemApp.Pages.Tickets.PrintBatchModel
+@{
+    ViewData["Title"] = $"Print {Model.Issues.Count} tickets";
+    var currency = System.Globalization.CultureInfo.GetCultureInfo("en-ZA");
+}
+
+<div class="print-actions">
+    <a class="button secondary" asp-page="/Operations/Issue">Issue another group</a>
+    <button class="button primary" type="button" onclick="window.print()">Print all @Model.Issues.Count tickets</button>
+</div>
+
+<header class="batch-print-summary">
+    <span>ISSUE COMPLETE</span>
+    <strong>@Model.Issues.Count tickets</strong>
+    <p>@Model.Issues[0].PackageName</p>
+</header>
+
+@foreach (var issue in Model.Issues)
+{
+    <article class="print-ticket batch-ticket">
+        <header><span class="print-brand">TICKET VOUCHER</span><span class="print-package">@issue.PackageName</span></header>
+        <div class="print-ticket-body">
+            <section class="print-title"><p>FAST TRACK ACCESS</p><h1>@issue.PackageName</h1><span>@issue.PackageDescription</span></section>
+            <section class="print-barcode">
+                <img src="@Url.Page("/Tickets/Print", "Barcode", new { id = issue.Id })" alt="Barcode @issue.TicketNumber" />
+                <strong>@issue.TicketNumber</strong>
+            </section>
+            <section class="print-benefits">
+                <h2>Included voucher benefits</h2>
+                @foreach (var benefit in Model.BenefitsFor(issue.Id))
+                {
+                    <div><span>@benefit.DepartmentType</span><strong>@benefit.PackageName</strong><b>@benefit.Amount.ToString("C0", currency) OFF</b><small>Valid until @benefit.ExpiresUtc.ToLocalTime().ToString("dd MMM yyyy")</small></div>
+                }
+            </section>
+        </div>
+        <footer><span>Issued @issue.IssuedUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")</span><span>Single redemption per benefit</span></footer>
+    </article>
+}

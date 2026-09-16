@@ -75,9 +75,15 @@
     <Build Include="dbo\StoredProcedures\spVoucherEvent_GetByVoucherId.sql" />
     <Build Include="dbo\StoredProcedures\spVoucher_GetDashboard.sql" />
     <Build Include="dbo\StoredProcedures\spTicketPackage_GetActive.sql" />
+    <Build Include="dbo\StoredProcedures\spTicketPackage_GetAll.sql" />
+    <Build Include="dbo\StoredProcedures\spTicketPackage_Save.sql" />
+    <Build Include="dbo\StoredProcedures\spTicketPackage_SetActive.sql" />
     <Build Include="dbo\StoredProcedures\spTicketVoucher_Issue.sql" />
+    <Build Include="dbo\StoredProcedures\spTicketVoucher_IssueBatch.sql" />
     <Build Include="dbo\StoredProcedures\spTicketVoucherIssue_GetById.sql" />
     <Build Include="dbo\StoredProcedures\spTicketVoucherIssue_GetVouchers.sql" />
+    <Build Include="dbo\StoredProcedures\spTicketVoucherIssue_GetBatch.sql" />
+    <Build Include="dbo\StoredProcedures\spTicketVoucherIssue_GetBatchVouchers.sql" />
     <Build Include="dbo\StoredProcedures\spOutlet_GetActive.sql" />
     <Build Include="dbo\StoredProcedures\spOutlet_GetAll.sql" />
     <Build Include="dbo\StoredProcedures\spOutlet_Save.sql" />
@@ -90,5 +96,6 @@
     <None Include="Scripts\Deploy.sql" />
     <None Include="Scripts\Upgrade-TicketPackages-Outlets.sql" />
     <None Include="Scripts\Upgrade-ExecutiveReporting.sql" />
+    <None Include="Scripts\Upgrade-GroupIssuance-Packages.sql" />
   </ItemGroup>
 </Project>
