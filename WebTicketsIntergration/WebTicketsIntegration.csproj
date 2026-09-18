@@ -15,4 +15,8 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TicketVoucherSystem.Data\TicketVoucherSystem.Data.csproj" />
+  </ItemGroup>
+
 </Project>
