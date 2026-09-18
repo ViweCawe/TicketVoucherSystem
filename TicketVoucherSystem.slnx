@@ -4,6 +4,7 @@
     <Build />
     <Deploy />
   </Project>
-  <Project Path="TicketVoucherSystemApp/TicketVoucherSystemApp.csproj" />
   <Project Path="TicketVoucherSystemApp.Tests/TicketVoucherSystemApp.Tests.csproj" />
+  <Project Path="TicketVoucherSystemApp/TicketVoucherSystemApp.csproj" />
+  <Project Path="WebTicketsIntergration/WebTicketsIntegration.csproj" Id="30f1f6dc-8f40-40e5-8e8b-35093cb61977" />
 </Solution>
