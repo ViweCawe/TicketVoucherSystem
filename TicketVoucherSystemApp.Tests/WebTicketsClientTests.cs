@@ -30,6 +30,22 @@ public sealed class WebTicketsClientTests
     }
 
     [Fact]
+    public async Task Lookup_accepts_the_full_lookup_url_as_base_url()
+    {
+        var handler = new StubHandler(HttpStatusCode.NotFound, string.Empty);
+
+        await Assert.ThrowsAsync<WebTicketsLookupException>(() =>
+            CreateClient(
+                handler,
+                "https://www.webtickets.co.za/api/transaction/cableway/lookup")
+            .LookupAsync("1605729254"));
+
+        Assert.Equal(
+            "https://www.webtickets.co.za/api/transaction/cableway/lookup",
+            handler.RequestUri?.ToString());
+    }
+
+    [Fact]
     public async Task Lookup_rejects_a_non_package_ticket()
     {
         const string json = """
@@ -43,10 +59,12 @@ public sealed class WebTicketsClientTests
         Assert.Contains("not eligible", exception.Message);
     }
 
-    private static WebTicketsClient CreateClient(HttpMessageHandler handler) =>
+    private static WebTicketsClient CreateClient(
+        HttpMessageHandler handler,
+        string baseUrl = "https://www.webtickets.co.za") =>
         new(new HttpClient(handler), Options.Create(new WebTicketsOptions
         {
-            BaseUrl = "https://www.webtickets.co.za",
+            BaseUrl = baseUrl,
             Username = "user",
             Password = "password"
         }));
