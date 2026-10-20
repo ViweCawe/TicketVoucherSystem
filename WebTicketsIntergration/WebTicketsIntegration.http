@@ -1,6 +1,11 @@
-@WebTicketsIntergration_HostAddress = http://localhost:5206
+@WebTicketsIntegration_HostAddress = http://localhost:5206
 
-GET {{WebTicketsIntergration_HostAddress}}/weatherforecast/
+POST {{WebTicketsIntegration_HostAddress}}/api/webtickets/lookup
+Content-Type: application/json
 Accept: application/json
+
+{
+  "barcode": "1605729254"
+}
 
 ###
