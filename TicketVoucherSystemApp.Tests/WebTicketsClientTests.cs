@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using TicketVoucherSystemApp.Integrations.WebTickets;
 using Xunit;
@@ -32,9 +33,11 @@ public sealed class WebTicketsClientTests
     [Fact]
     public async Task Lookup_accepts_the_full_lookup_url_as_base_url()
     {
-        var handler = new StubHandler(HttpStatusCode.NotFound, string.Empty);
+        var handler = new StubHandler(
+            HttpStatusCode.NotFound,
+            """{"message":"Production route is unavailable"}""");
 
-        await Assert.ThrowsAsync<WebTicketsLookupException>(() =>
+        var exception = await Assert.ThrowsAsync<WebTicketsLookupException>(() =>
             CreateClient(
                 handler,
                 "https://www.webtickets.co.za/api/transaction/cableway/lookup")
@@ -43,6 +46,9 @@ public sealed class WebTicketsClientTests
         Assert.Equal(
             "https://www.webtickets.co.za/api/transaction/cableway/lookup",
             handler.RequestUri?.ToString());
+        Assert.Contains("www.webtickets.co.za", exception.Message);
+        Assert.Contains("HTTP 404", exception.Message);
+        Assert.Contains("Production route is unavailable", exception.Message);
     }
 
     [Fact]
@@ -62,12 +68,15 @@ public sealed class WebTicketsClientTests
     private static WebTicketsClient CreateClient(
         HttpMessageHandler handler,
         string baseUrl = "https://www.webtickets.co.za") =>
-        new(new HttpClient(handler), Options.Create(new WebTicketsOptions
-        {
-            BaseUrl = baseUrl,
-            Username = "user",
-            Password = "password"
-        }));
+        new(
+            new HttpClient(handler),
+            Options.Create(new WebTicketsOptions
+            {
+                BaseUrl = baseUrl,
+                Username = "user",
+                Password = "password"
+            }),
+            NullLogger<WebTicketsClient>.Instance);
 
     private sealed class StubHandler(HttpStatusCode statusCode, string response) : HttpMessageHandler
     {
