@@ -1,0 +1,72 @@
+@page
+@model TicketVoucherSystemApp.Pages.Admin.WebTickets.IndexModel
+@{
+    ViewData["Title"] = "Webtickets lookup";
+}
+
+<header class="ticket-issue-heading">
+    <p class="eyebrow">Webtickets verification</p>
+    <h1>Look up a purchased ticket.</h1>
+    <p>Scan one Webtickets barcode, confirm the matching authorized Packages ticket, then attach a voucher package.</p>
+</header>
+
+<div asp-validation-summary="ModelOnly" class="alert error"></div>
+
+<form method="post" asp-page-handler="Lookup" class="ticket-issue-console">
+    <section class="ticket-scan-step">
+        <span class="step-number">01</span>
+        <div>
+            <label asp-for="Barcode">Webtickets barcode</label>
+            <div class="ticket-scan-input">
+                <span>SCAN</span>
+                <input asp-for="Barcode" autofocus autocomplete="off" placeholder="SCNVQZC594L" />
+            </div>
+            <span asp-validation-for="Barcode" class="validation"></span>
+        </div>
+    </section>
+    <footer>
+        <span>The lookup is read-only and checks the exact barcode returned by Webtickets.</span>
+        <button class="button primary" type="submit">Look up ticket</button>
+    </footer>
+</form>
+
+@if (Model.Lookup is not null)
+{
+    <section class="detail-summary" style="margin-top: 22px;">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Authorized ticket found</p>
+                <h2>@Model.Lookup.Ticket.TicketType</h2>
+            </div>
+            <span class="status">Ready to assign</span>
+        </div>
+        <dl>
+            <div><dt>Barcode</dt><dd>@Model.Lookup.Ticket.Barcode</dd></div>
+            <div><dt>Reference</dt><dd>@Model.Lookup.Basket.Reference</dd></div>
+            <div><dt>Ticket price</dt><dd>@Model.Lookup.Ticket.TicketPrice.ToString("C")</dd></div>
+            <div><dt>Performance</dt><dd>@Model.Lookup.Ticket.Performance</dd></div>
+            <div><dt>Entry status</dt><dd>@(Model.Lookup.Ticket.Validated ? "Validated" : "Not validated")</dd></div>
+        </dl>
+        <form method="post" asp-page-handler="Assign" class="stack-form" style="margin-top: 20px;">
+            <input asp-for="Barcode" type="hidden" />
+            <label class="field">
+                <span>Voucher package</span>
+                <select asp-for="TicketPackageId">
+                    <option value="">Choose the package to attach</option>
+                    @foreach (var package in Model.Packages)
+                    {
+                        <option value="@package.Id">@package.Name - @package.BenefitSummary</option>
+                    }
+                </select>
+                <span asp-validation-for="TicketPackageId" class="validation"></span>
+            </label>
+            <div class="button-row">
+                <button class="button primary" type="submit">Verify again and assign package</button>
+            </div>
+        </form>
+    </section>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
