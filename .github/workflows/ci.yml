@@ -86,7 +86,7 @@ jobs:
           Admin__Email: ci-admin@example.com
           Admin__BootstrapPassword: CI_Admin_2026!Strong
         run: |
-          dotnet run --project TicketVoucherSystemApp --configuration Release --no-build > /tmp/voucher-app.log 2>&1 &
+          dotnet run --project TicketVoucherSystemApp --configuration Release --no-build --no-launch-profile > /tmp/voucher-app.log 2>&1 &
           echo $! > /tmp/voucher-app.pid
           curl --fail --retry 30 --retry-delay 2 --retry-connrefused http://127.0.0.1:5080/health
 

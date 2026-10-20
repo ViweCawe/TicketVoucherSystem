@@ -1,0 +1,101 @@
+@page
+@model TicketVoucherSystemApp.Pages.Admin.Packages.IndexModel
+@{
+    ViewData["Title"] = "Packages";
+}
+
+<header class="page-heading">
+    <div>
+        <p class="eyebrow">Administration</p>
+        <h1>Ticket packages</h1>
+        <p>Create the Retail and F&amp;B benefits that can be attached to a purchased ticket.</p>
+    </div>
+</header>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <div class="alert success">@Model.StatusMessage</div>
+}
+
+<div class="settings-grid">
+    <form method="post" asp-page-handler="Save" class="form-panel stack-form">
+        <div asp-validation-summary="ModelOnly" class="alert error"></div>
+        <input asp-for="Package.Id" type="hidden" />
+
+        <label class="field">
+            <span>Package name</span>
+            <input asp-for="Package.Name" autocomplete="off" />
+            <span asp-validation-for="Package.Name" class="validation"></span>
+        </label>
+
+        <label class="field">
+            <span>Description</span>
+            <textarea asp-for="Package.Description" rows="3"></textarea>
+            <span asp-validation-for="Package.Description" class="validation"></span>
+        </label>
+
+        <div class="field-row">
+            <label class="field">
+                <span>Retail value</span>
+                <input asp-for="Package.RetailAmount" inputmode="decimal" />
+                <span asp-validation-for="Package.RetailAmount" class="validation"></span>
+            </label>
+            <label class="field">
+                <span>F&amp;B value</span>
+                <input asp-for="Package.FoodAndBeverageAmount" inputmode="decimal" />
+                <span asp-validation-for="Package.FoodAndBeverageAmount" class="validation"></span>
+            </label>
+        </div>
+
+        <label class="field compact">
+            <span>Valid for</span>
+            <input asp-for="Package.ValidDays" type="number" min="1" max="3650" />
+            <small>Days after the vouchers are issued.</small>
+            <span asp-validation-for="Package.ValidDays" class="validation"></span>
+        </label>
+
+        <div class="button-row">
+            <button class="button primary" type="submit">Create package</button>
+        </div>
+    </form>
+
+    <section class="panel">
+        <div class="panel-heading">
+            <div>
+                <p class="eyebrow">Available</p>
+                <h2>@Model.Packages.Count packages</h2>
+            </div>
+        </div>
+
+        <div class="package-admin-list">
+            @if (Model.Packages.Count == 0)
+            {
+                <div><span><strong>No packages yet</strong><small>Create the first package using the form.</small></span></div>
+            }
+            @foreach (var package in Model.Packages)
+            {
+                <div>
+                    <span>
+                        <strong>@package.Name</strong>
+                        <small>@package.Description</small>
+                    </span>
+                    <span>@package.BenefitSummary</span>
+                    <span class="status @(package.IsActive ? null : "cancelled")">
+                        @(package.IsActive ? "Active" : "Inactive")
+                    </span>
+                    <form method="post" asp-page-handler="SetActive">
+                        <input name="id" value="@package.Id" type="hidden" />
+                        <input name="isActive" value="@(!package.IsActive)" type="hidden" />
+                        <button class="button secondary small" type="submit">
+                            @(package.IsActive ? "Deactivate" : "Activate")
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
