@@ -113,3 +113,24 @@ WebTickets__Password=YOUR_PASSWORD
 ```
 
 Recycle the IIS application pool after changing its environment. For bearer or API-key authentication, set `WebTickets__BearerToken`, or both `WebTickets__ApiKeyHeaderName` and `WebTickets__ApiKey`, instead. Authentication values are never sent to the browser or written to application logs.
+
+
+### Testing the Webtickets API
+
+Run the integration API in Development:
+
+```powershell
+dotnet run --project WebTicketsIntergration
+```
+
+Open `http://localhost:5206/swagger`, expand `POST /api/webtickets/lookup`, select **Try it out**, and submit:
+
+```json
+{
+  "barcode": "1605729254"
+}
+```
+
+The response shows `upstreamStatus`, the exact `endpoint`, `contentType`, and the unmodified Webtickets response. In Development, no `X-Integration-Key` is required unless `WebTicketsApi:ApiKey` is configured. A deployed Production instance requires that key to be configured and sent in the header.
+
+Postman can call the local diagnostic endpoint with the same JSON at `http://localhost:5206/api/webtickets/lookup`. To bypass the application completely, call `https://www.webtickets.co.za/api/transaction/cableway/lookup` directly with method POST, Basic Auth, header `Content-Type: application/json`, and the same body. Never place the Webtickets password in the request body or source control.

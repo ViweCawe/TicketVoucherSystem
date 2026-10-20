@@ -16,5 +16,6 @@
   <ItemGroup>
     <ProjectReference Include="../TicketVoucherSystem.Data/TicketVoucherSystem.Data.csproj" />
     <ProjectReference Include="../TicketVoucherSystemApp/TicketVoucherSystemApp.csproj" />
+    <ProjectReference Include="../WebTicketsIntergration/WebTicketsIntegration.csproj" />
   </ItemGroup>
 </Project>
