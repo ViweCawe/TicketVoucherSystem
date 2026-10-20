@@ -86,3 +86,17 @@ The browser test also creates a combined package, issues it to two ticket barcod
 4. Publish the web project to a temporary folder.
 5. Stop the IIS application pool, replace the deployed files, and restart the pool.
 6. Create a low-value test package, issue two test tickets, print both, and redeem one before reopening operator access.
+
+
+## Webtickets barcode lookup
+
+Administrators can open `/Admin/WebTickets`, look up a purchased Webtickets barcode, review the matching authorized ticket, and attach one active voucher package. The application looks the ticket up again immediately before issuing, and the existing SQL transaction prevents duplicate voucher assignment.
+
+The endpoint and eligible ticket type have safe defaults. Keep authentication values in user secrets. Username/password credentials use HTTP Basic authentication:
+
+```powershell
+dotnet user-secrets set "WebTickets:Username" "YOUR_USERNAME" --project TicketVoucherSystemApp
+dotnet user-secrets set "WebTickets:Password" "YOUR_PASSWORD" --project TicketVoucherSystemApp
+```
+
+For bearer or API-key authentication, set `WebTickets:BearerToken`, or both `WebTickets:ApiKeyHeaderName` and `WebTickets:ApiKey`, instead. Authentication values are never sent to the browser or written to application logs.
