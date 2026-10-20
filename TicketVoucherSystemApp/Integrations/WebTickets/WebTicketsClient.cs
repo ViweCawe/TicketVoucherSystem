@@ -17,11 +17,16 @@ public sealed class WebTicketsClient : IWebTicketsClient
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly HttpClient _httpClient;
     private readonly WebTicketsOptions _options;
+    private readonly ILogger<WebTicketsClient> _logger;
 
-    public WebTicketsClient(HttpClient httpClient, IOptions<WebTicketsOptions> options)
+    public WebTicketsClient(
+        HttpClient httpClient,
+        IOptions<WebTicketsOptions> options,
+        ILogger<WebTicketsClient> logger)
     {
         _httpClient = httpClient;
         _options = options.Value;
+        _logger = logger;
         _httpClient.Timeout = TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 60));
     }
 
@@ -41,6 +46,7 @@ public sealed class WebTicketsClient : IWebTicketsClient
         {
             Content = JsonContent.Create(new WebTicketsLookupRequest(barcode))
         };
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         AddAuthentication(request);
 
         HttpResponseMessage response;
@@ -59,23 +65,34 @@ public sealed class WebTicketsClient : IWebTicketsClient
 
         using (response)
         {
-            if (response.StatusCode == HttpStatusCode.NotFound)
-                throw new WebTicketsLookupException("Webtickets could not find that barcode.");
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
-                throw new WebTicketsLookupException($"Webtickets lookup failed with status {(int)response.StatusCode}.");
+            {
+                _logger.LogWarning(
+                    "Webtickets host {Host} returned HTTP {StatusCode} with content type {ContentType}.",
+                    endpoint.Host,
+                    (int)response.StatusCode,
+                    response.Content.Headers.ContentType?.ToString() ?? "unknown");
+
+                throw new WebTicketsLookupException(
+                    FormatUpstreamFailure(endpoint, response, responseBody));
+            }
 
             WebTicketsBasket? basket;
             try
             {
-                basket = await response.Content.ReadFromJsonAsync<WebTicketsBasket>(JsonOptions, cancellationToken);
+                basket = JsonSerializer.Deserialize<WebTicketsBasket>(responseBody, JsonOptions);
             }
             catch (JsonException)
             {
-                throw new WebTicketsLookupException("Webtickets returned an unexpected response.");
+                throw new WebTicketsLookupException(
+                    $"Webtickets host '{endpoint.Host}' returned HTTP {(int)response.StatusCode}, " +
+                    "but the response was not valid ticket JSON.");
             }
 
             if (basket is null)
-                throw new WebTicketsLookupException("Webtickets returned an empty response.");
+                throw new WebTicketsLookupException(
+                    $"Webtickets host '{endpoint.Host}' returned an empty response.");
 
             var matches = basket.Transactions.SelectMany(x => x.Tickets)
                 .Where(x => string.Equals(x.Barcode, barcode, StringComparison.OrdinalIgnoreCase)).ToArray();
@@ -115,6 +132,26 @@ public sealed class WebTicketsClient : IWebTicketsClient
         }
 
         return new Uri(configuredUri, lookupPath);
+    }
+
+    private static string FormatUpstreamFailure(
+        Uri endpoint,
+        HttpResponseMessage response,
+        string responseBody)
+    {
+        var message =
+            $"Webtickets host '{endpoint.Host}' returned HTTP {(int)response.StatusCode} {response.ReasonPhrase}.";
+
+        if (string.IsNullOrWhiteSpace(responseBody))
+            return message;
+
+        var detail = string.Join(
+            ' ',
+            responseBody.Split([' ', '\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries));
+        if (detail.Length > 300)
+            detail = $"{detail[..300]}...";
+
+        return $"{message} Response: {detail}";
     }
 
     private void AddAuthentication(HttpRequestMessage request)
