@@ -92,13 +92,13 @@ The browser test also creates a combined package, issues it to two ticket barcod
 
 Administrators can open `/Admin/WebTickets`, look up a purchased Webtickets barcode, review the matching authorized ticket, and attach one active voucher package. The application looks the ticket up again immediately before issuing, and the existing SQL transaction prevents duplicate voucher assignment.
 
-In Development, the application loads the existing WebTicketsIntergration user-secrets store. Username/password credentials use HTTP Basic authentication:
+In Development, configure Webtickets under the user-secrets store of the application you are running. For the Voucher System, username/password credentials use HTTP Basic authentication:
 
 ```powershell
-dotnet user-secrets set "WebTickets:BaseUrl" "https://www.webtickets.co.za/api/transaction/cableway/lookup" --project WebTicketsIntergration
-dotnet user-secrets set "WebTickets:CountryCode" "ZA" --project WebTicketsIntergration
-dotnet user-secrets set "WebTickets:Username" "YOUR_USERNAME" --project WebTicketsIntergration
-dotnet user-secrets set "WebTickets:Password" "YOUR_PASSWORD" --project WebTicketsIntergration
+dotnet user-secrets set "WebTickets:BaseUrl" "https://www.webtickets.co.za/api/transaction/cableway/lookup" --project TicketVoucherSystemApp
+dotnet user-secrets set "WebTickets:CountryCode" "ZA" --project TicketVoucherSystemApp
+dotnet user-secrets set "WebTickets:Username" "YOUR_USERNAME" --project TicketVoucherSystemApp
+dotnet user-secrets set "WebTickets:Password" "YOUR_PASSWORD" --project TicketVoucherSystemApp
 ```
 
 `WebTickets:BaseUrl` accepts either the site root or the complete lookup URL. A full `WebTickets:Endpoint` remains available as an override.
