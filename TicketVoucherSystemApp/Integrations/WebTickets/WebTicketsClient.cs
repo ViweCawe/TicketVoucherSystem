@@ -97,16 +97,24 @@ public sealed class WebTicketsClient : IWebTicketsClient
 
     private Uri ResolveEndpoint()
     {
-        var value = !string.IsNullOrWhiteSpace(_options.Endpoint)
-            ? _options.Endpoint
-            : $"{_options.BaseUrl.TrimEnd('/')}/api/transaction/cableway/lookup";
+        const string lookupPath = "/api/transaction/cableway/lookup";
+        var hasExplicitEndpoint = !string.IsNullOrWhiteSpace(_options.Endpoint);
+        var value = hasExplicitEndpoint ? _options.Endpoint : _options.BaseUrl;
 
-        if (!Uri.TryCreate(value, UriKind.Absolute, out var endpoint))
+        if (!Uri.TryCreate(value?.Trim(), UriKind.Absolute, out var configuredUri) ||
+            configuredUri.Scheme is not ("http" or "https"))
         {
-            throw new WebTicketsLookupException("The Webtickets endpoint is not configured correctly.");
+            throw new WebTicketsLookupException(
+                "The Webtickets endpoint is not configured. Set WebTickets:BaseUrl in the deployed application.");
         }
 
-        return endpoint;
+        if (hasExplicitEndpoint ||
+            string.Equals(configuredUri.AbsolutePath.TrimEnd('/'), lookupPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return configuredUri;
+        }
+
+        return new Uri(configuredUri, lookupPath);
     }
 
     private void AddAuthentication(HttpRequestMessage request)
@@ -123,6 +131,11 @@ public sealed class WebTicketsClient : IWebTicketsClient
         else if (!string.IsNullOrWhiteSpace(_options.ApiKeyHeaderName) && !string.IsNullOrWhiteSpace(_options.ApiKey))
         {
             request.Headers.TryAddWithoutValidation(_options.ApiKeyHeaderName, _options.ApiKey);
+        }
+        else
+        {
+            throw new WebTicketsLookupException(
+                "Webtickets authentication is not configured in the deployed application.");
         }
     }
 }
