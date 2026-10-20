@@ -24,6 +24,9 @@ public sealed class WebTicketsClientTests
         Assert.Equal(13, result.Ticket.TicketId);
         Assert.Equal("MATCH123", result.Ticket.Barcode);
         Assert.Equal("Basic", handler.AuthorizationScheme);
+        Assert.Equal(
+            "https://www.webtickets.co.za/api/transaction/cableway/lookup",
+            handler.RequestUri?.ToString());
     }
 
     [Fact]
@@ -43,7 +46,7 @@ public sealed class WebTicketsClientTests
     private static WebTicketsClient CreateClient(HttpMessageHandler handler) =>
         new(new HttpClient(handler), Options.Create(new WebTicketsOptions
         {
-            Endpoint = "https://example.test/lookup",
+            BaseUrl = "https://www.webtickets.co.za",
             Username = "user",
             Password = "password"
         }));
@@ -51,11 +54,13 @@ public sealed class WebTicketsClientTests
     private sealed class StubHandler(HttpStatusCode statusCode, string response) : HttpMessageHandler
     {
         public string? AuthorizationScheme { get; private set; }
+        public Uri? RequestUri { get; private set; }
 
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken cancellationToken)
         {
             AuthorizationScheme = request.Headers.Authorization?.Scheme;
+            RequestUri = request.RequestUri;
             return Task.FromResult(new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent(response, Encoding.UTF8, "application/json")

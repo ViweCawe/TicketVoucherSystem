@@ -92,11 +92,13 @@ The browser test also creates a combined package, issues it to two ticket barcod
 
 Administrators can open `/Admin/WebTickets`, look up a purchased Webtickets barcode, review the matching authorized ticket, and attach one active voucher package. The application looks the ticket up again immediately before issuing, and the existing SQL transaction prevents duplicate voucher assignment.
 
-The endpoint and eligible ticket type have safe defaults. In Development, the application also loads the existing WebTicketsIntergration user-secrets store. Keep authentication values in user secrets. Username/password credentials use HTTP Basic authentication:
+The base URL and eligible ticket type have safe defaults. In Development, the application also loads the existing WebTicketsIntergration user-secrets store. Keep authentication values in user secrets. Username/password credentials use HTTP Basic authentication:
 
 ```powershell
-dotnet user-secrets set "WebTickets:Username" "YOUR_USERNAME" --project TicketVoucherSystemApp
-dotnet user-secrets set "WebTickets:Password" "YOUR_PASSWORD" --project TicketVoucherSystemApp
+dotnet user-secrets set "WebTickets:BaseUrl" "https://www.webtickets.co.za" --project WebTicketsIntergration
+dotnet user-secrets set "WebTickets:CountryCode" "ZA" --project WebTicketsIntergration
+dotnet user-secrets set "WebTickets:Username" "YOUR_USERNAME" --project WebTicketsIntergration
+dotnet user-secrets set "WebTickets:Password" "YOUR_PASSWORD" --project WebTicketsIntergration
 ```
 
-For bearer or API-key authentication, set `WebTickets:BearerToken`, or both `WebTickets:ApiKeyHeaderName` and `WebTickets:ApiKey`, instead. Authentication values are never sent to the browser or written to application logs.
+The client appends `/api/transaction/cableway/lookup` to `WebTickets:BaseUrl`. A full `WebTickets:Endpoint` remains available as an override. For bearer or API-key authentication, set `WebTickets:BearerToken`, or both `WebTickets:ApiKeyHeaderName` and `WebTickets:ApiKey`, instead. Authentication values are never sent to the browser or written to application logs.

@@ -35,10 +35,7 @@ public sealed class WebTicketsClient : IWebTicketsClient
                 "Enter a valid ticket barcode containing 6 to 32 letters, numbers, or hyphens.");
         }
 
-        if (!Uri.TryCreate(_options.Endpoint, UriKind.Absolute, out var endpoint))
-        {
-            throw new WebTicketsLookupException("The Webtickets endpoint is not configured correctly.");
-        }
+        var endpoint = ResolveEndpoint();
 
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
@@ -96,6 +93,20 @@ public sealed class WebTicketsClient : IWebTicketsClient
 
             return new WebTicketsLookup(basket, ticket);
         }
+    }
+
+    private Uri ResolveEndpoint()
+    {
+        var value = !string.IsNullOrWhiteSpace(_options.Endpoint)
+            ? _options.Endpoint
+            : $"{_options.BaseUrl.TrimEnd('/')}/api/transaction/cableway/lookup";
+
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var endpoint))
+        {
+            throw new WebTicketsLookupException("The Webtickets endpoint is not configured correctly.");
+        }
+
+        return endpoint;
     }
 
     private void AddAuthentication(HttpRequestMessage request)
