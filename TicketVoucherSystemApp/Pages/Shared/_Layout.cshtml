@@ -63,6 +63,7 @@
                     @if (User.IsInRole("Admin"))
                     {
                         <span class="nav-label">Administration</span>
+                        <a class="nav-link @(path.StartsWithSegments("/Admin/WebTickets") ? "active" : null)" asp-page="/Admin/WebTickets/Index"><span>W</span>Webtickets lookup</a>
                         <a class="nav-link @(path.StartsWithSegments("/Admin/Vouchers") ? "active" : null)" asp-page="/Admin/Vouchers/Index"><span>V</span>Voucher register</a>
                         <a class="nav-link @(path.StartsWithSegments("/Admin/Packages") ? "active" : null)" asp-page="/Admin/Packages/Index"><span>P</span>Packages</a>
                         <a class="nav-link @(path.StartsWithSegments("/Admin/Outlets") ? "active" : null)" asp-page="/Admin/Outlets/Index"><span>O</span>Outlets</a>

@@ -32,7 +32,8 @@ for (const viewport of [
     await page.screenshot({ path: `artifacts/packages-${viewport.name}.png`, fullPage: true });
 
     await page.goto('/Operations/Issue');
-    await page.getByLabel('Ticket package').selectOption({ label: new RegExp(packageName) });
+    const packageOption = page.getByLabel('Ticket package').locator('option').filter({ hasText: packageName });
+    await page.getByLabel('Ticket package').selectOption(await packageOption.getAttribute('value'));
     await page.getByLabel('Existing ticket barcodes').fill(ticketNumbers.join('\n'));
     await expect(page.getByText('2 tickets', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Issue package to tickets' }).click();
