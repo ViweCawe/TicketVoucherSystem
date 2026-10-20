@@ -4,6 +4,7 @@ using TicketVoucherSystem.Data.Repositories;
 using TicketVoucherSystem.Data.Sql;
 using TicketVoucherSystemApp.Authorization;
 using TicketVoucherSystemApp.Data;
+using TicketVoucherSystemApp.Integrations.WebTickets;
 using TicketVoucherSystemApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,9 @@ builder.Services.AddScoped<IVoucherReportData, VoucherReportData>();
 builder.Services.AddScoped<IUserAdministration, UserAdministration>();
 builder.Services.AddSingleton<IVoucherBarcodeExporter, VoucherBarcodeExporter>();
 builder.Services.AddHostedService<AdminRoleInitializer>();
+builder.Services.Configure<WebTicketsOptions>(
+    builder.Configuration.GetSection(WebTicketsOptions.SectionName));
+builder.Services.AddHttpClient<IWebTicketsClient, WebTicketsClient>();
 
 builder.Services.AddRazorPages(options =>
 {
