@@ -92,7 +92,7 @@ The browser test also creates a combined package, issues it to two ticket barcod
 
 Administrators can open `/Admin/WebTickets`, look up a purchased Webtickets barcode, review the matching authorized ticket, and attach one active voucher package. The application looks the ticket up again immediately before issuing, and the existing SQL transaction prevents duplicate voucher assignment.
 
-The endpoint and eligible ticket type have safe defaults. Keep authentication values in user secrets. Username/password credentials use HTTP Basic authentication:
+The endpoint and eligible ticket type have safe defaults. In Development, the application also loads the existing WebTicketsIntergration user-secrets store. Keep authentication values in user secrets. Username/password credentials use HTTP Basic authentication:
 
 ```powershell
 dotnet user-secrets set "WebTickets:Username" "YOUR_USERNAME" --project TicketVoucherSystemApp
