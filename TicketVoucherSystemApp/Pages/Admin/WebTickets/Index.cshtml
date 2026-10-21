@@ -7,7 +7,7 @@
 <header class="ticket-issue-heading">
     <p class="eyebrow">Webtickets verification</p>
     <h1>Look up a purchased ticket.</h1>
-    <p>Scan one Webtickets barcode, confirm the matching authorized Packages ticket, then attach a voucher package.</p>
+    <p>Scan one Webtickets barcode, confirm the matching authorized ticket, then attach a voucher package.</p>
 </header>
 
 <div asp-validation-summary="ModelOnly" class="alert error"></div>
@@ -43,8 +43,10 @@
         <dl>
             <div><dt>Barcode</dt><dd>@Model.Lookup.Ticket.Barcode</dd></div>
             <div><dt>Reference</dt><dd>@Model.Lookup.Basket.Reference</dd></div>
-            <div><dt>Ticket price</dt><dd>@Model.Lookup.Ticket.TicketPrice.ToString("C")</dd></div>
-            <div><dt>Performance</dt><dd>@Model.Lookup.Ticket.Performance</dd></div>
+            <div><dt>Purchaser name</dt><dd>@(string.IsNullOrWhiteSpace(Model.Lookup.Basket.CustomerName) ? "Not supplied" : Model.Lookup.Basket.CustomerName)</dd></div>
+            <div><dt>Email</dt><dd>@(string.IsNullOrWhiteSpace(Model.Lookup.Basket.CustomerEmail) ? "Not supplied" : Model.Lookup.Basket.CustomerEmail)</dd></div>
+            <div><dt>Ticket price</dt><dd>@($"R {Model.Lookup.Ticket.TicketPrice:N2}")</dd></div>
+            <div><dt>Time slot</dt><dd>@(string.IsNullOrWhiteSpace(Model.Lookup.Ticket.Performance) ? "Not supplied" : Model.Lookup.Ticket.Performance)</dd></div>
             <div><dt>Entry status</dt><dd>@(Model.Lookup.Ticket.Validated ? "Validated" : "Not validated")</dd></div>
         </dl>
         <form method="post" asp-page-handler="Assign" class="stack-form" style="margin-top: 20px;">
