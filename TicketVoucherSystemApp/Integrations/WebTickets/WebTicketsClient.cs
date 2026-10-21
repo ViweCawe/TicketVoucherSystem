@@ -104,10 +104,6 @@ public sealed class WebTicketsClient : IWebTicketsClient
             var ticket = matches[0];
             if (!basket.Authorized || !ticket.Authorized)
                 throw new WebTicketsLookupException("This Webtickets purchase is not authorized.");
-            if (!string.Equals(ticket.TicketType, _options.EligibleTicketType, StringComparison.OrdinalIgnoreCase))
-                throw new WebTicketsLookupException(
-                    $"Ticket type '{ticket.TicketType}' is not eligible. Expected '{_options.EligibleTicketType}'.");
-
             return new WebTicketsLookup(basket, ticket);
         }
     }
