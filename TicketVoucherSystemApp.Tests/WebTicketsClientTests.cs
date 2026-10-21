@@ -13,19 +13,27 @@ public sealed class WebTicketsClientTests
     public async Task Lookup_selects_the_exact_barcode_from_the_returned_basket()
     {
         const string json = """
-        {"basketId":10,"reference":"AA-1","customerEmail":"buyer@example.com","customerName":"Test Buyer","authorized":true,"transactions":[{
-          "tickets":[
+        {"basketId":10,"reference":"AA-1","customerEmail":"buyer@example.com","customerName":"Test Buyer","authorized":true,"transactions":[
+          {"transactionId":77,"transactionAmount":240,"tickets":[
             {"ticketId":12,"barcode":"OTHER123","ticketType":"Packages","authorized":true},
-            {"ticketId":13,"barcode":"MATCH123","ticketType":"Packages","ticketPrice":120,"performance":"09:00 - 10:00","authorized":true}
-          ]}]}
+            {"ticketId":13,"barcode":"MATCH123","ticketType":"Packages","ticketHolder":"Guest One","email":"guest@example.com","ticketPrice":120,"performance":"09:00 - 10:00","authorized":true}
+          ]},
+          {"transactionId":88,"tickets":[
+            {"ticketId":14,"barcode":"DIFFERENT456","ticketType":"Standard","authorized":true}
+          ]}
+        ]}
         """;
         var handler = new StubHandler(HttpStatusCode.OK, json);
         var result = await CreateClient(handler).LookupAsync("match123");
 
         Assert.Equal(13, result.Ticket.TicketId);
         Assert.Equal("MATCH123", result.Ticket.Barcode);
+        Assert.Equal(77, result.Transaction.TransactionId);
+        Assert.Equal(2, result.Transaction.Tickets.Count);
         Assert.Equal("Test Buyer", result.Basket.CustomerName);
         Assert.Equal("buyer@example.com", result.Basket.CustomerEmail);
+        Assert.Equal("Guest One", result.Ticket.TicketHolder);
+        Assert.Equal("guest@example.com", result.Ticket.Email);
         Assert.Equal("09:00 - 10:00", result.Ticket.Performance);
         Assert.Equal("Basic", handler.AuthorizationScheme);
         Assert.Equal(
