@@ -52,17 +52,17 @@ public sealed class WebTicketsClientTests
     }
 
     [Fact]
-    public async Task Lookup_rejects_a_non_package_ticket()
+    public async Task Lookup_accepts_any_authorized_ticket_type()
     {
         const string json = """
         {"authorized":true,"transactions":[{"tickets":[
           {"barcode":"MATCH123","ticketType":"Standard","authorized":true}
         ]}]}
         """;
-        var exception = await Assert.ThrowsAsync<WebTicketsLookupException>(
-            () => CreateClient(new StubHandler(HttpStatusCode.OK, json)).LookupAsync("MATCH123"));
+        var result = await CreateClient(new StubHandler(HttpStatusCode.OK, json))
+            .LookupAsync("MATCH123");
 
-        Assert.Contains("not eligible", exception.Message);
+        Assert.Equal("Standard", result.Ticket.TicketType);
     }
 
     private static WebTicketsClient CreateClient(
