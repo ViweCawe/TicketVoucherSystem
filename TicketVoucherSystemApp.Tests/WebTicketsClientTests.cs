@@ -13,10 +13,10 @@ public sealed class WebTicketsClientTests
     public async Task Lookup_selects_the_exact_barcode_from_the_returned_basket()
     {
         const string json = """
-        {"basketId":10,"reference":"AA-1","authorized":true,"transactions":[{
+        {"basketId":10,"reference":"AA-1","customerEmail":"buyer@example.com","customerName":"Test Buyer","authorized":true,"transactions":[{
           "tickets":[
             {"ticketId":12,"barcode":"OTHER123","ticketType":"Packages","authorized":true},
-            {"ticketId":13,"barcode":"MATCH123","ticketType":"Packages","ticketPrice":120,"authorized":true}
+            {"ticketId":13,"barcode":"MATCH123","ticketType":"Packages","ticketPrice":120,"performance":"09:00 - 10:00","authorized":true}
           ]}]}
         """;
         var handler = new StubHandler(HttpStatusCode.OK, json);
@@ -24,6 +24,9 @@ public sealed class WebTicketsClientTests
 
         Assert.Equal(13, result.Ticket.TicketId);
         Assert.Equal("MATCH123", result.Ticket.Barcode);
+        Assert.Equal("Test Buyer", result.Basket.CustomerName);
+        Assert.Equal("buyer@example.com", result.Basket.CustomerEmail);
+        Assert.Equal("09:00 - 10:00", result.Ticket.Performance);
         Assert.Equal("Basic", handler.AuthorizationScheme);
         Assert.Equal(
             "https://www.webtickets.co.za/api/transaction/cableway/lookup",
