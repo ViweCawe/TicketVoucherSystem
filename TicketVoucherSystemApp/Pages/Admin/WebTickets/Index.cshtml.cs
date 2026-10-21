@@ -16,6 +16,9 @@ public sealed class IndexModel(IWebTicketsClient webTickets, ITicketVoucherData 
     [BindProperty]
     public int TicketPackageId { get; set; }
 
+    [BindProperty]
+    public List<string> SelectedBarcodes { get; set; } = [];
+
     public WebTicketsLookup? Lookup { get; private set; }
     public IReadOnlyList<TicketPackage> Packages { get; private set; } = [];
 
@@ -25,6 +28,7 @@ public sealed class IndexModel(IWebTicketsClient webTickets, ITicketVoucherData 
     public async Task<IActionResult> OnPostLookupAsync(CancellationToken cancellationToken)
     {
         ModelState.Remove(nameof(TicketPackageId));
+        ModelState.Remove(nameof(SelectedBarcodes));
         if (ModelState.IsValid)
             Lookup = await TryLookupAsync(cancellationToken);
 
@@ -34,17 +38,45 @@ public sealed class IndexModel(IWebTicketsClient webTickets, ITicketVoucherData 
 
     public async Task<IActionResult> OnPostAssignAsync(CancellationToken cancellationToken)
     {
+        if (!string.IsNullOrWhiteSpace(Barcode))
+            Lookup = await TryLookupAsync(cancellationToken);
+
         if (TicketPackageId < 1)
             ModelState.AddModelError(nameof(TicketPackageId), "Choose a voucher package.");
 
-        if (!ModelState.IsValid)
+        var selectedBarcodes = SelectedBarcodes
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => value.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        if (selectedBarcodes.Length == 0)
+            ModelState.AddModelError(nameof(SelectedBarcodes), "Select at least one ticket.");
+        else if (selectedBarcodes.Length > 100)
+            ModelState.AddModelError(nameof(SelectedBarcodes), "Select no more than 100 tickets.");
+
+        IReadOnlyList<string> verifiedBarcodes = [];
+        if (Lookup is not null && selectedBarcodes.Length > 0)
         {
-            await LoadPackagesAsync(cancellationToken);
-            return Page();
+            var authorizedTickets = Lookup.Transaction.Tickets
+                .Where(ticket => ticket.Authorized)
+                .ToLookup(ticket => ticket.Barcode, StringComparer.OrdinalIgnoreCase);
+
+            if (selectedBarcodes.Any(barcode => !authorizedTickets.Contains(barcode)))
+            {
+                ModelState.AddModelError(
+                    nameof(SelectedBarcodes),
+                    "The transaction changed or contains an unauthorized selection. Review the tickets and try again.");
+            }
+            else
+            {
+                verifiedBarcodes = selectedBarcodes
+                    .Select(barcode => authorizedTickets[barcode].First().Barcode)
+                    .ToArray();
+            }
         }
 
-        Lookup = await TryLookupAsync(cancellationToken);
-        if (Lookup is null)
+        if (Lookup is null || !ModelState.IsValid)
         {
             await LoadPackagesAsync(cancellationToken);
             return Page();
@@ -53,7 +85,7 @@ public sealed class IndexModel(IWebTicketsClient webTickets, ITicketVoucherData 
         try
         {
             var issues = await tickets.IssueBatchAsync(
-                [Lookup.Ticket.Barcode], TicketPackageId,
+                verifiedBarcodes, TicketPackageId,
                 User.Identity?.Name ?? "System", cancellationToken);
             var batchId = issues.FirstOrDefault()?.BatchId;
             if (!batchId.HasValue || batchId == Guid.Empty)

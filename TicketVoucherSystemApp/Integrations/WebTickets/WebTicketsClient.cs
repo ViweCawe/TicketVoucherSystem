@@ -94,17 +94,22 @@ public sealed class WebTicketsClient : IWebTicketsClient
                 throw new WebTicketsLookupException(
                     $"Webtickets host '{endpoint.Host}' returned an empty response.");
 
-            var matches = basket.Transactions.SelectMany(x => x.Tickets)
-                .Where(x => string.Equals(x.Barcode, barcode, StringComparison.OrdinalIgnoreCase)).ToArray();
+            var matches = basket.Transactions
+                .SelectMany(transaction => transaction.Tickets.Select(
+                    ticket => (Transaction: transaction, Ticket: ticket)))
+                .Where(match => string.Equals(
+                    match.Ticket.Barcode, barcode, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
             if (matches.Length != 1)
                 throw new WebTicketsLookupException(matches.Length == 0
                     ? "The returned basket does not contain the scanned barcode."
                     : "Webtickets returned the scanned barcode more than once.");
 
-            var ticket = matches[0];
-            if (!basket.Authorized || !ticket.Authorized)
+            var match = matches[0];
+            if (!basket.Authorized || !match.Ticket.Authorized)
                 throw new WebTicketsLookupException("This Webtickets purchase is not authorized.");
-            return new WebTicketsLookup(basket, ticket);
+
+            return new WebTicketsLookup(basket, match.Transaction, match.Ticket);
         }
     }
 
@@ -174,7 +179,10 @@ public sealed class WebTicketsClient : IWebTicketsClient
 }
 
 public sealed class WebTicketsLookupException(string message) : Exception(message);
-public sealed record WebTicketsLookup(WebTicketsBasket Basket, WebTicketsTicket Ticket);
+public sealed record WebTicketsLookup(
+    WebTicketsBasket Basket,
+    WebTicketsTransaction Transaction,
+    WebTicketsTicket Ticket);
 public sealed record WebTicketsLookupRequest(string Barcode);
 
 public sealed class WebTicketsBasket
@@ -203,6 +211,8 @@ public sealed class WebTicketsTicket
     public string Barcode { get; set; } = string.Empty;
     public long TicketTypeId { get; set; }
     public string TicketType { get; set; } = string.Empty;
+    public string TicketHolder { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
     public decimal TicketPrice { get; set; }
     public long PerformanceId { get; set; }
     public string Performance { get; set; } = string.Empty;

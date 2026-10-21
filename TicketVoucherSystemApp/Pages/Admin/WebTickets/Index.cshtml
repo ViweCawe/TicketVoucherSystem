@@ -6,8 +6,8 @@
 
 <header class="ticket-issue-heading">
     <p class="eyebrow">Webtickets verification</p>
-    <h1>Look up a purchased ticket.</h1>
-    <p>Scan one Webtickets barcode, confirm the matching authorized ticket, then attach a voucher package.</p>
+    <h1>Look up a purchased transaction.</h1>
+    <p>Scan any ticket barcode to load every ticket in its Webtickets transaction, then select the tickets that should receive a voucher package.</p>
 </header>
 
 <div asp-validation-summary="ModelOnly" class="alert error"></div>
@@ -25,32 +25,89 @@
         </div>
     </section>
     <footer>
-        <span>The lookup is read-only and checks the exact barcode returned by Webtickets.</span>
-        <button class="button primary" type="submit">Look up ticket</button>
+        <span>The barcode identifies its containing Webtickets transaction.</span>
+        <button class="button primary" type="submit">Look up transaction</button>
     </footer>
 </form>
 
 @if (Model.Lookup is not null)
 {
+    var purchaserName = string.IsNullOrWhiteSpace(Model.Lookup.Basket.CustomerName)
+        ? "Not supplied"
+        : Model.Lookup.Basket.CustomerName;
+    var purchaserEmail = string.IsNullOrWhiteSpace(Model.Lookup.Basket.CustomerEmail)
+        ? "Not supplied"
+        : Model.Lookup.Basket.CustomerEmail;
+
     <section class="detail-summary" style="margin-top: 22px;">
         <div class="section-heading">
             <div>
-                <p class="eyebrow">Authorized ticket found</p>
-                <h2>@Model.Lookup.Ticket.TicketType</h2>
+                <p class="eyebrow">Authorized transaction found</p>
+                <h2>Transaction @Model.Lookup.Transaction.TransactionId</h2>
             </div>
-            <span class="status">Ready to assign</span>
+            <span class="status">@Model.Lookup.Transaction.Tickets.Count tickets</span>
         </div>
+
         <dl>
-            <div><dt>Barcode</dt><dd>@Model.Lookup.Ticket.Barcode</dd></div>
             <div><dt>Reference</dt><dd>@Model.Lookup.Basket.Reference</dd></div>
-            <div><dt>Purchaser name</dt><dd>@(string.IsNullOrWhiteSpace(Model.Lookup.Basket.CustomerName) ? "Not supplied" : Model.Lookup.Basket.CustomerName)</dd></div>
-            <div><dt>Email</dt><dd>@(string.IsNullOrWhiteSpace(Model.Lookup.Basket.CustomerEmail) ? "Not supplied" : Model.Lookup.Basket.CustomerEmail)</dd></div>
-            <div><dt>Ticket price</dt><dd>@($"R {Model.Lookup.Ticket.TicketPrice:N2}")</dd></div>
-            <div><dt>Time slot</dt><dd>@(string.IsNullOrWhiteSpace(Model.Lookup.Ticket.Performance) ? "Not supplied" : Model.Lookup.Ticket.Performance)</dd></div>
-            <div><dt>Entry status</dt><dd>@(Model.Lookup.Ticket.Validated ? "Validated" : "Not validated")</dd></div>
+            <div><dt>Purchaser name</dt><dd>@purchaserName</dd></div>
+            <div><dt>Email</dt><dd>@purchaserEmail</dd></div>
+            <div><dt>Transaction total</dt><dd>@($"R {Model.Lookup.Transaction.TransactionAmount:N2}")</dd></div>
         </dl>
+
         <form method="post" asp-page-handler="Assign" class="stack-form" style="margin-top: 20px;">
             <input asp-for="Barcode" type="hidden" />
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>
+                                <input id="select-all-tickets" type="checkbox" aria-label="Select all authorized tickets" />
+                            </th>
+                            <th>Type</th>
+                            <th>Ticket holder</th>
+                            <th>Email</th>
+                            <th>Barcode</th>
+                            <th>Time slot</th>
+                            <th>Scanned</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ticket in Model.Lookup.Transaction.Tickets)
+                        {
+                            var ticketHolder = string.IsNullOrWhiteSpace(ticket.TicketHolder)
+                                ? purchaserName
+                                : ticket.TicketHolder;
+                            var email = string.IsNullOrWhiteSpace(ticket.Email)
+                                ? purchaserEmail
+                                : ticket.Email;
+                            var isSelected = Model.SelectedBarcodes.Contains(
+                                ticket.Barcode, StringComparer.OrdinalIgnoreCase);
+
+                            <tr>
+                                <td>
+                                    <input class="ticket-selector"
+                                           type="checkbox"
+                                           name="SelectedBarcodes"
+                                           value="@ticket.Barcode"
+                                           checked="@(isSelected ? "checked" : null)"
+                                           disabled="@(!ticket.Authorized ? "disabled" : null)"
+                                           aria-label="Select ticket @ticket.Barcode" />
+                                </td>
+                                <td>@ticket.TicketType</td>
+                                <td>@ticketHolder</td>
+                                <td>@email</td>
+                                <td><strong>@ticket.Barcode</strong></td>
+                                <td>@(string.IsNullOrWhiteSpace(ticket.Performance) ? "Not supplied" : ticket.Performance)</td>
+                                <td>@(ticket.Validated ? "Yes" : "No")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <span asp-validation-for="SelectedBarcodes" class="validation"></span>
+
             <label class="field">
                 <span>Voucher package</span>
                 <select asp-for="TicketPackageId">
@@ -62,8 +119,9 @@
                 </select>
                 <span asp-validation-for="TicketPackageId" class="validation"></span>
             </label>
+
             <div class="button-row">
-                <button class="button primary" type="submit">Verify again and assign package</button>
+                <button class="button primary" type="submit">Verify selection and assign package</button>
             </div>
         </form>
     </section>
@@ -71,4 +129,23 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        const selectAllTickets = document.getElementById('select-all-tickets');
+        const ticketSelectors = Array.from(document.querySelectorAll('.ticket-selector:not(:disabled)'));
+
+        if (selectAllTickets) {
+            const updateSelectAll = () => {
+                const selectedCount = ticketSelectors.filter(input => input.checked).length;
+                selectAllTickets.checked = ticketSelectors.length > 0 && selectedCount === ticketSelectors.length;
+                selectAllTickets.indeterminate = selectedCount > 0 && selectedCount < ticketSelectors.length;
+            };
+
+            selectAllTickets.addEventListener('change', () => {
+                ticketSelectors.forEach(input => input.checked = selectAllTickets.checked);
+                updateSelectAll();
+            });
+            ticketSelectors.forEach(input => input.addEventListener('change', updateSelectAll));
+            updateSelectAll();
+        }
+    </script>
 }
