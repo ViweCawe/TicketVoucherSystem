@@ -6,7 +6,6 @@ public sealed class WebTicketsOptions
     public string BaseUrl { get; set; } = string.Empty;
     public string? Endpoint { get; set; }
     public string CountryCode { get; set; } = "ZA";
-    public string EligibleTicketType { get; set; } = "Packages";
     public int TimeoutSeconds { get; set; } = 15;
     public string? Username { get; set; }
     public string? Password { get; set; }
