@@ -464,6 +464,16 @@ dd { margin: 0; font-size: 12px; }
 .ticket-issue-console > footer { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 28px; background: #f0f2f4; }
 .ticket-issue-console > footer span { color: var(--muted); font-size: 11px; }
 
+/* Webtickets transaction ticket details */
+.ticket-detail-link { font-family: Consolas, monospace; }
+.ticket-detail-row td { padding: 0; white-space: normal; background: #f7f9fb; }
+.ticket-detail-panel { padding: 18px 20px; border-left: 4px solid var(--blue); }
+.ticket-detail-panel > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+.ticket-detail-panel dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0 20px; }
+.ticket-detail-panel dl div { grid-template-columns: 1fr; gap: 4px; }
+.ticket-detail-panel dt { color: var(--muted); font-size: 9px; font-weight: 800; text-transform: uppercase; }
+.ticket-detail-panel dd { margin: 0; overflow-wrap: anywhere; }
+
 /* Ticket print sheet */
 .print-actions { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 18px; }
 .page-actions { display: flex; align-items: center; gap: 10px; }
