@@ -74,8 +74,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var ticket in Model.Lookup.Transaction.Tickets)
+                        @for (var index = 0; index < Model.Lookup.Transaction.Tickets.Count; index++)
                         {
+                            var ticket = Model.Lookup.Transaction.Tickets[index];
                             var ticketHolder = string.IsNullOrWhiteSpace(ticket.TicketHolder)
                                 ? purchaserName
                                 : ticket.TicketHolder;
@@ -98,9 +99,32 @@
                                 <td>@ticket.TicketType</td>
                                 <td>@ticketHolder</td>
                                 <td>@email</td>
-                                <td><strong>@ticket.Barcode</strong></td>
+                                <td>
+                                    <a class="row-action ticket-detail-link"
+                                       href="#ticket-detail-@index"
+                                       data-ticket-detail
+                                       aria-controls="ticket-detail-@index"
+                                       aria-expanded="false">@ticket.Barcode</a>
+                                </td>
                                 <td>@(string.IsNullOrWhiteSpace(ticket.Performance) ? "Not supplied" : ticket.Performance)</td>
                                 <td>@(ticket.Validated ? "Yes" : "No")</td>
+                            </tr>
+                            <tr id="ticket-detail-@index" class="ticket-detail-row" hidden>
+                                <td colspan="7">
+                                    <div class="ticket-detail-panel">
+                                        <header>
+                                            <strong>@ticket.TicketType</strong>
+                                            <span class="status">@(ticket.Authorized ? "Ready to assign" : "Not authorized")</span>
+                                        </header>
+                                        <dl>
+                                            <div><dt>Barcode</dt><dd>@ticket.Barcode</dd></div>
+                                            <div><dt>Reference</dt><dd>@Model.Lookup.Basket.Reference</dd></div>
+                                            <div><dt>Ticket price</dt><dd>@($"R {ticket.TicketPrice:N2}")</dd></div>
+                                            <div><dt>Performance</dt><dd>@(string.IsNullOrWhiteSpace(ticket.Performance) ? "Not supplied" : ticket.Performance)</dd></div>
+                                            <div><dt>Entry status</dt><dd>@(ticket.Validated ? "Validated" : "Not validated")</dd></div>
+                                        </dl>
+                                    </div>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -147,5 +171,19 @@
             ticketSelectors.forEach(input => input.addEventListener('change', updateSelectAll));
             updateSelectAll();
         }
+
+        document.querySelectorAll('[data-ticket-detail]').forEach(link => {
+            link.addEventListener('click', event => {
+                event.preventDefault();
+                const detailRow = document.getElementById(link.getAttribute('aria-controls'));
+                const willOpen = detailRow.hidden;
+
+                detailRow.hidden = !willOpen;
+                link.setAttribute('aria-expanded', willOpen.toString());
+
+                if (willOpen)
+                    history.replaceState(null, '', link.getAttribute('href'));
+            });
+        });
     </script>
 }
