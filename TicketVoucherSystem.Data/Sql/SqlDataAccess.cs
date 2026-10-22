@@ -30,7 +30,7 @@ public sealed class SqlDataAccess(IConfiguration configuration) : IDataAccess
         }
         catch (SqlException exception) when (exception.Number >= 50000)
         {
-            throw new VoucherOperationException(exception.Message, exception);
+            throw new VoucherOperationException(exception.Number, exception.Message, exception);
         }
     }
 
@@ -52,7 +52,7 @@ public sealed class SqlDataAccess(IConfiguration configuration) : IDataAccess
         }
         catch (SqlException exception) when (exception.Number >= 50000)
         {
-            throw new VoucherOperationException(exception.Message, exception);
+            throw new VoucherOperationException(exception.Number, exception.Message, exception);
         }
     }
 
@@ -74,7 +74,7 @@ public sealed class SqlDataAccess(IConfiguration configuration) : IDataAccess
         }
         catch (SqlException exception) when (exception.Number >= 50000)
         {
-            throw new VoucherOperationException(exception.Message, exception);
+            throw new VoucherOperationException(exception.Number, exception.Message, exception);
         }
     }
 }
