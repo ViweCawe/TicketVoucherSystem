@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="TicketVoucherSystem.Api/TicketVoucherSystem.Api.csproj" Id="293ddf77-b165-4dd2-8c67-7814e77adc46" />
   <Project Path="TicketVoucherSystem.Data/TicketVoucherSystem.Data.csproj" />
   <Project Path="TicketVoucherSystem.Database/TicketVoucherSystem.Database.sqlproj" Id="81b6c093-a9d5-49d7-91db-89576b92b6a3">
     <Build />
@@ -6,5 +7,4 @@
   </Project>
   <Project Path="TicketVoucherSystemApp.Tests/TicketVoucherSystemApp.Tests.csproj" />
   <Project Path="TicketVoucherSystemApp/TicketVoucherSystemApp.csproj" />
-  <Project Path="WebTicketsIntergration/WebTicketsIntegration.csproj" Id="30f1f6dc-8f40-40e5-8e8b-35093cb61977" />
 </Solution>
