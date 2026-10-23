@@ -5,7 +5,6 @@ using TicketVoucherSystem.Data.Sql;
 using TicketVoucherSystemApp.Authorization;
 using TicketVoucherSystemApp.Data;
 using TicketVoucherSystemApp.Integrations.WebTickets;
-using TicketVoucherSystemApp.Pos;
 using TicketVoucherSystemApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,9 +39,6 @@ builder.Services.AddHostedService<AdminRoleInitializer>();
 builder.Services.Configure<WebTicketsOptions>(
     builder.Configuration.GetSection(WebTicketsOptions.SectionName));
 builder.Services.AddHttpClient<IWebTicketsClient, WebTicketsClient>();
-builder.Services.Configure<PosApiOptions>(
-    builder.Configuration.GetSection(PosApiOptions.SectionName));
-builder.Services.AddScoped<PosApiKeyFilter>();
 
 builder.Services.AddRazorPages(options =>
 {
@@ -90,7 +86,6 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" })).AllowAnonymous();
-app.MapPosApi();
 app.MapRazorPages().WithStaticAssets();
 
 app.Run();
