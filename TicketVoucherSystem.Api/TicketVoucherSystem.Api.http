@@ -1,6 +1,0 @@
-@TicketVoucherSystem.Api_HostAddress = http://localhost:5030
-
-GET {{TicketVoucherSystem.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
