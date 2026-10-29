@@ -53,6 +53,8 @@ for (const viewport of [
     // Static-asset fallback routing can reject an unmatched POST with 405.
     expect([404, 405]).toContain(removedApi.status());
 
+    // The print view intentionally uses A4 width; check a normal app page on mobile.
+    await page.goto('/Dashboard');
     const hasHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
     );
