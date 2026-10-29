@@ -13,7 +13,7 @@ CREATE TABLE dbo.PosRedemption
     SaleTotal decimal(12,2) NOT NULL,
     EligibleTotal decimal(12,2) NOT NULL,
     DiscountAmount decimal(12,2) NOT NULL,
-    AmountDue AS (SaleTotal - DiscountAmount) PERSISTED,
+    AmountDue AS (SaleTotal - DiscountAmount),
     Currency char(3) NOT NULL CONSTRAINT DF_PosRedemption_Currency DEFAULT ('ZAR'),
     RedeemedUtc datetime2(0) NOT NULL,
     CONSTRAINT FK_PosRedemption_Voucher FOREIGN KEY (VoucherId) REFERENCES dbo.Voucher(Id),

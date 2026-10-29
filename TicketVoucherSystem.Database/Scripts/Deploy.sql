@@ -1,3 +1,6 @@
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
 :r ../dbo/Tables/VoucherPackage.sql
 GO
 :r ../dbo/Tables/Outlet.sql
