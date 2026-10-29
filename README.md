@@ -77,7 +77,7 @@ dotnet build .\TicketVoucherSystem.slnx
 dotnet test .\TicketVoucherSystemApp.Tests\TicketVoucherSystemApp.Tests.csproj
 ```
 
-The browser test also creates a combined package, issues it to two ticket barcodes, verifies both printed pages, and confirms the removed web redemption routes return 404.
+The browser test also creates a combined package, issues it to two ticket barcodes, verifies both printed pages, and confirms the removed web redemption routes reject requests.
 
 ## IIS deployment order
 

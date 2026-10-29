@@ -173,7 +173,7 @@ Create a separate IIS site/application and application pool (No Managed Code), c
 
 Nested environment variables use double underscores, for example `Authentication__SecretKey`, `Authentication__Clients__0__SecretHash`, and `ConnectionStrings__DefaultConnection`. Restart the pool after credential/configuration changes. Do not expose HTTP as a working integration URL; have IIS require TLS. Confirm the .NET ASP.NET Core Hosting Bundle is installed for IIS even when self-contained.
 
-Cutover order: upgrade the database → configure/deploy/test the separate API → deploy the admin app removal → switch MICROS/HRK to the API host. The old web `/Operations/Redeem` and `/api/pos/v1/vouchers/redeem` routes will return 404 after the new web build is deployed. Remove the old API-key configuration from the hosting environment. Existing role records and redemption history are retained; they grant no redemption route in the web app.
+Cutover order: upgrade the database → configure/deploy/test the separate API → deploy the admin app removal → switch MICROS/HRK to the API host. The old web `/Operations/Redeem` and `/api/pos/v1/vouchers/redeem` routes are unavailable after the new web build is deployed (404, or 405 for an unmatched POST handled by framework fallback routing). Remove the old API-key configuration from the hosting environment. Existing role records and redemption history are retained; they grant no redemption route in the web app.
 
 ## Run the tests
 

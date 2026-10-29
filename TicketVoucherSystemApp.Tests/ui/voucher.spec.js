@@ -50,7 +50,8 @@ for (const viewport of [
     const removedPage = await page.request.get('/Operations/Redeem');
     expect(removedPage.status()).toBe(404);
     const removedApi = await page.request.post('/api/pos/v1/vouchers/redeem', { data: {} });
-    expect(removedApi.status()).toBe(404);
+    // Static-asset fallback routing can reject an unmatched POST with 405.
+    expect([404, 405]).toContain(removedApi.status());
 
     const hasHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
