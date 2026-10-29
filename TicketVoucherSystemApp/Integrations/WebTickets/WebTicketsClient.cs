@@ -17,11 +17,16 @@ public sealed class WebTicketsClient : IWebTicketsClient
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly HttpClient _httpClient;
     private readonly WebTicketsOptions _options;
+    private readonly ILogger<WebTicketsClient> _logger;
 
-    public WebTicketsClient(HttpClient httpClient, IOptions<WebTicketsOptions> options)
+    public WebTicketsClient(
+        HttpClient httpClient,
+        IOptions<WebTicketsOptions> options,
+        ILogger<WebTicketsClient> logger)
     {
         _httpClient = httpClient;
         _options = options.Value;
+        _logger = logger;
         _httpClient.Timeout = TimeSpan.FromSeconds(Math.Clamp(_options.TimeoutSeconds, 5, 60));
     }
 
@@ -35,15 +40,13 @@ public sealed class WebTicketsClient : IWebTicketsClient
                 "Enter a valid ticket barcode containing 6 to 32 letters, numbers, or hyphens.");
         }
 
-        if (!Uri.TryCreate(_options.Endpoint, UriKind.Absolute, out var endpoint))
-        {
-            throw new WebTicketsLookupException("The Webtickets endpoint is not configured correctly.");
-        }
+        var endpoint = ResolveEndpoint();
 
         using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
         {
             Content = JsonContent.Create(new WebTicketsLookupRequest(barcode))
         };
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         AddAuthentication(request);
 
         HttpResponseMessage response;
@@ -62,40 +65,94 @@ public sealed class WebTicketsClient : IWebTicketsClient
 
         using (response)
         {
-            if (response.StatusCode == HttpStatusCode.NotFound)
-                throw new WebTicketsLookupException("Webtickets could not find that barcode.");
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
-                throw new WebTicketsLookupException($"Webtickets lookup failed with status {(int)response.StatusCode}.");
+            {
+                _logger.LogWarning(
+                    "Webtickets host {Host} returned HTTP {StatusCode} with content type {ContentType}.",
+                    endpoint.Host,
+                    (int)response.StatusCode,
+                    response.Content.Headers.ContentType?.ToString() ?? "unknown");
+
+                throw new WebTicketsLookupException(
+                    FormatUpstreamFailure(endpoint, response, responseBody));
+            }
 
             WebTicketsBasket? basket;
             try
             {
-                basket = await response.Content.ReadFromJsonAsync<WebTicketsBasket>(JsonOptions, cancellationToken);
+                basket = JsonSerializer.Deserialize<WebTicketsBasket>(responseBody, JsonOptions);
             }
             catch (JsonException)
             {
-                throw new WebTicketsLookupException("Webtickets returned an unexpected response.");
+                throw new WebTicketsLookupException(
+                    $"Webtickets host '{endpoint.Host}' returned HTTP {(int)response.StatusCode}, " +
+                    "but the response was not valid ticket JSON.");
             }
 
             if (basket is null)
-                throw new WebTicketsLookupException("Webtickets returned an empty response.");
+                throw new WebTicketsLookupException(
+                    $"Webtickets host '{endpoint.Host}' returned an empty response.");
 
-            var matches = basket.Transactions.SelectMany(x => x.Tickets)
-                .Where(x => string.Equals(x.Barcode, barcode, StringComparison.OrdinalIgnoreCase)).ToArray();
+            var matches = basket.Transactions
+                .SelectMany(transaction => transaction.Tickets.Select(
+                    ticket => (Transaction: transaction, Ticket: ticket)))
+                .Where(match => string.Equals(
+                    match.Ticket.Barcode, barcode, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
             if (matches.Length != 1)
                 throw new WebTicketsLookupException(matches.Length == 0
                     ? "The returned basket does not contain the scanned barcode."
                     : "Webtickets returned the scanned barcode more than once.");
 
-            var ticket = matches[0];
-            if (!basket.Authorized || !ticket.Authorized)
+            var match = matches[0];
+            if (!basket.Authorized || !match.Ticket.Authorized)
                 throw new WebTicketsLookupException("This Webtickets purchase is not authorized.");
-            if (!string.Equals(ticket.TicketType, _options.EligibleTicketType, StringComparison.OrdinalIgnoreCase))
-                throw new WebTicketsLookupException(
-                    $"Ticket type '{ticket.TicketType}' is not eligible. Expected '{_options.EligibleTicketType}'.");
 
-            return new WebTicketsLookup(basket, ticket);
+            return new WebTicketsLookup(basket, match.Transaction, match.Ticket);
         }
+    }
+
+    private Uri ResolveEndpoint()
+    {
+        const string lookupPath = "/api/transaction/cableway/lookup";
+        var hasExplicitEndpoint = !string.IsNullOrWhiteSpace(_options.Endpoint);
+        var value = hasExplicitEndpoint ? _options.Endpoint : _options.BaseUrl;
+
+        if (!Uri.TryCreate(value?.Trim(), UriKind.Absolute, out var configuredUri) ||
+            configuredUri.Scheme is not ("http" or "https"))
+        {
+            throw new WebTicketsLookupException(
+                "The Webtickets endpoint is not configured. Set WebTickets:BaseUrl in the deployed application.");
+        }
+
+        if (hasExplicitEndpoint ||
+            string.Equals(configuredUri.AbsolutePath.TrimEnd('/'), lookupPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return configuredUri;
+        }
+
+        return new Uri(configuredUri, lookupPath);
+    }
+
+    private static string FormatUpstreamFailure(
+        Uri endpoint,
+        HttpResponseMessage response,
+        string responseBody)
+    {
+        var message =
+            $"Webtickets host '{endpoint.Host}' returned HTTP {(int)response.StatusCode} {response.ReasonPhrase}.";
+
+        if (string.IsNullOrWhiteSpace(responseBody))
+            return message;
+
+        var detail = string.Join(
+            ' ',
+            responseBody.Split([' ', '\r', '\n', '\t'], StringSplitOptions.RemoveEmptyEntries));
+        if (detail.Length > 300)
+            detail = $"{detail[..300]}...";
+
+        return $"{message} Response: {detail}";
     }
 
     private void AddAuthentication(HttpRequestMessage request)
@@ -113,17 +170,27 @@ public sealed class WebTicketsClient : IWebTicketsClient
         {
             request.Headers.TryAddWithoutValidation(_options.ApiKeyHeaderName, _options.ApiKey);
         }
+        else
+        {
+            throw new WebTicketsLookupException(
+                "Webtickets authentication is not configured in the deployed application.");
+        }
     }
 }
 
 public sealed class WebTicketsLookupException(string message) : Exception(message);
-public sealed record WebTicketsLookup(WebTicketsBasket Basket, WebTicketsTicket Ticket);
+public sealed record WebTicketsLookup(
+    WebTicketsBasket Basket,
+    WebTicketsTransaction Transaction,
+    WebTicketsTicket Ticket);
 public sealed record WebTicketsLookupRequest(string Barcode);
 
 public sealed class WebTicketsBasket
 {
     public long BasketId { get; set; }
     public string Reference { get; set; } = string.Empty;
+    public string CustomerEmail { get; set; } = string.Empty;
+    public string CustomerName { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public DateTime CreateDate { get; set; }
     public bool Authorized { get; set; }
@@ -144,6 +211,8 @@ public sealed class WebTicketsTicket
     public string Barcode { get; set; } = string.Empty;
     public long TicketTypeId { get; set; }
     public string TicketType { get; set; } = string.Empty;
+    public string TicketHolder { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
     public decimal TicketPrice { get; set; }
     public long PerformanceId { get; set; }
     public string Performance { get; set; } = string.Empty;
