@@ -74,3 +74,11 @@ GO
 GO
 :r ./PostDeployment.sql
 GO
+
+
+:r ../dbo/Tables/PosRedemption.sql
+GO
+:r ../dbo/StoredProcedures/spPosVoucher_Lookup.sql
+GO
+:r ../dbo/StoredProcedures/spPosVoucher_Redeem.sql
+GO

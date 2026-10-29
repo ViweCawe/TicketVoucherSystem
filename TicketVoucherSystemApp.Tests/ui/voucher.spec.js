@@ -46,12 +46,11 @@ for (const viewport of [
     await expect(page.getByText('R200 OFF', { exact: true }).first()).toBeVisible();
     await page.screenshot({ path: `artifacts/group-print-${viewport.name}.png`, fullPage: true });
 
-    await page.goto('/Operations/Redeem?department=Retail');
-    await page.getByLabel('Redeeming outlet').selectOption({ label: 'Vista' });
-    await page.getByPlaceholder(/Scan or enter/i).fill(ticketNumbers[0]);
-    await page.getByRole('button', { name: 'Redeem voucher' }).click();
-    await expect(page.getByText('REDEEMED')).toBeVisible();
-    await expect(page.getByText(/at Vista/)).toBeVisible();
+    await expect(page.locator('a[href*="/Operations/Redeem"]')).toHaveCount(0);
+    const removedPage = await page.request.get('/Operations/Redeem');
+    expect(removedPage.status()).toBe(404);
+    const removedApi = await page.request.post('/api/pos/v1/vouchers/redeem', { data: {} });
+    expect(removedApi.status()).toBe(404);
 
     const hasHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
@@ -59,3 +58,4 @@ for (const viewport of [
     expect(hasHorizontalOverflow).toBe(false);
   });
 }
+

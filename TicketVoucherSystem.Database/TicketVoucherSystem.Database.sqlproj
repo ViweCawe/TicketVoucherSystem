@@ -92,6 +92,10 @@
     <Build Include="dbo\StoredProcedures\spReport_GetVoucherTrend.sql" />
     <Build Include="dbo\StoredProcedures\spReport_GetDepartmentPerformance.sql" />
     <Build Include="dbo\StoredProcedures\spReport_GetOutletPerformance.sql" />
+    <Build Include="dbo\Tables\PosRedemption.sql" />
+    <Build Include="dbo\StoredProcedures\spPosVoucher_Lookup.sql" />
+    <Build Include="dbo\StoredProcedures\spPosVoucher_Redeem.sql" />
+    <None Include="Scripts\Upgrade-POS-API.sql" />
     <PostDeploy Include="Scripts\PostDeployment.sql" />
     <None Include="Scripts\Deploy.sql" />
     <None Include="Scripts\Upgrade-TicketPackages-Outlets.sql" />
@@ -99,3 +103,4 @@
     <None Include="Scripts\Upgrade-GroupIssuance-Packages.sql" />
   </ItemGroup>
 </Project>
+

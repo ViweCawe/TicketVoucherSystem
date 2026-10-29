@@ -29,17 +29,6 @@ public sealed class VoucherData(IDataAccess db) : IVoucherData
             "dbo.spVoucher_GetDashboard",
             cancellationToken: cancellationToken) ?? new VoucherDashboard();
 
-    public Task<Voucher?> RedeemAsync(
-        string code,
-        string departmentType,
-        int outletId,
-        string userName,
-        CancellationToken cancellationToken = default) =>
-        db.QuerySingleOrDefaultAsync<Voucher>(
-            "dbo.spVoucher_Redeem",
-            new { Code = code.Trim(), DepartmentType = departmentType, OutletId = outletId, UserName = userName },
-            cancellationToken);
-
     public async Task CancelAsync(
         long id,
         string reason,
@@ -53,3 +42,4 @@ public sealed class VoucherData(IDataAccess db) : IVoucherData
     }
 
 }
+
