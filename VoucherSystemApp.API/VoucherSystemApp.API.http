@@ -1,29 +1,19 @@
 @baseUrl = https://localhost:7240
-@clientId = micros-fnb-01
-@clientSecret = REPLACE_LOCALLY_DO_NOT_COMMIT
-@token = PASTE_ACCESS_TOKEN
-@voucherCode = 1605729254
 
-### Obtain a JWT; copy accessToken into @token above.
-POST {{baseUrl}}/api/auth/token
-Content-Type: application/json
-
-{ "userName": "{{clientId}}", "password": "{{clientSecret}}" }
-
-### Read-only preview
+### lookup
 POST {{baseUrl}}/api/pos/v1/vouchers/lookup
-Authorization: Bearer {{token}}
-Content-Type: application/json
-
-{ "voucherCode": "{{voucherCode}}", "saleTotal": 1500, "eligibleTotal": 1500, "currency": "ZAR" }
-
-### Redeem; keep this key and full body unchanged for retries. New sale = new key and transactionId.
-POST {{baseUrl}}/api/pos/v1/vouchers/redeem
-Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "voucherCode": "{{voucherCode}}", "saleTotal": 1500, "eligibleTotal": 1500, "currency": "ZAR",
-  "idempotencyKey": "8dc21e5d-834f-4ae9-9260-f9602c6b1f39",
-  "transactionId": "MICROS-20261029-000123", "operatorId": "EMP-42"
+  "voucherCode": "1605729254",
+  "departmentType": "FoodAndBeverage"
+}
+
+### redeem
+POST {{baseUrl}}/api/pos/v1/vouchers/redeem
+Content-Type: application/json
+
+{
+  "voucherCode": "1605729254",
+  "departmentType": "FoodAndBeverage"
 }
