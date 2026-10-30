@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
@@ -15,10 +17,11 @@ public sealed class PosHttpTests
 {
     [Theory]
     [InlineData("lookup")][InlineData("redeem")]
-    public async Task Endpoints_work_without_credentials(string action)
+    public async Task Endpoints_work_with_basic_credentials(string action)
     {
         await using var app = new TestApi();
         using var client = app.CreateClient(new() { BaseAddress = new Uri("https://localhost") });
+        client.DefaultRequestHeaders.Authorization = TestApi.Header();
         var response = await client.PostAsJsonAsync("/api/pos/v1/vouchers/" + action,
             new { voucherCode = "TICKET-001", departmentType = "FoodAndBeverage" });
         response.EnsureSuccessStatusCode();
@@ -32,8 +35,26 @@ public sealed class PosHttpTests
     {
         await using var app = new TestApi(); app.Data.Error = error;
         using var client = app.CreateClient(new() { BaseAddress = new Uri("https://localhost") });
+        client.DefaultRequestHeaders.Authorization = TestApi.Header();
         Assert.Equal(status,(int)(await client.PostAsJsonAsync("/api/pos/v1/vouchers/redeem",
             new { voucherCode = "TICKET-001", departmentType = "Retail" })).StatusCode);
+    }
+    [Theory]
+    [InlineData("lookup", null)]
+    [InlineData("redeem", null)]
+    [InlineData("lookup", "Basic bm9wZTp3cm9uZw==")]
+    [InlineData("redeem", "Basic !!!")]
+    [InlineData("lookup", "Bearer anything")]
+    [InlineData("redeem", "Basic dGVzdC1wb3M6d3Jvbmc=")]
+    public async Task Missing_or_invalid_credentials_return_401(string action, string? authorization)
+    {
+        await using var app = new TestApi();
+        using var client = app.CreateClient(new() { BaseAddress = new Uri("https://localhost") });
+        if(authorization is not null) client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization",authorization);
+        var response = await client.PostAsJsonAsync("/api/pos/v1/vouchers/"+action,
+            new { voucherCode="TICKET-001", departmentType="Retail" });
+        Assert.Equal(HttpStatusCode.Unauthorized,response.StatusCode);
+        Assert.Contains(response.Headers.WwwAuthenticate,h=>h.Scheme=="Basic");
     }
     [Fact]
     public async Task Swagger_is_accessible_without_authentication()
@@ -48,17 +69,22 @@ public sealed class PosHttpTests
     public async Task Invalid_department_is_rejected()
     {
         await using var app = new TestApi(); using var client = app.CreateClient(new() { BaseAddress = new Uri("https://localhost") });
+        client.DefaultRequestHeaders.Authorization = TestApi.Header();
         Assert.Equal(HttpStatusCode.BadRequest,(await client.PostAsJsonAsync("/api/pos/v1/vouchers/redeem",new { voucherCode="ABC",departmentType="Other" })).StatusCode);
     }
 }
 internal sealed class TestApi : WebApplicationFactory<Program>
 {
+    public static AuthenticationHeaderValue Header() => new("Basic",
+        Convert.ToBase64String(Encoding.UTF8.GetBytes("test-pos:test-only-password")));
     public FakeData Data { get; } = new();
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
         builder.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?>
         {
+            ["BasicAuth:Username"] = "test-pos",
+            ["BasicAuth:Password"] = "test-only-password",
             ["ConnectionStrings:DefaultConnection"] = "Server=unused;Database=unused;Integrated Security=true",
         }));
         builder.ConfigureServices(s => { s.RemoveAll<IPosVoucherData>(); s.AddSingleton<IPosVoucherData>(Data); });

@@ -1,10 +1,22 @@
 {
   "info": {
-    "name": "Public voucher API",
+    "name": "Voucher API - Basic Auth",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
-    "type": "noauth"
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "{{posUsername}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{posPassword}}",
+        "type": "string"
+      }
+    ]
   },
   "variable": [
     {
