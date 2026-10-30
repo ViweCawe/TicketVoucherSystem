@@ -1,75 +1,50 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using VoucherSystemApp.API.Authentication;
 
-namespace VoucherSystemApp.API.Controllers
+namespace VoucherSystemApp.API.Controllers;
+
+[ApiController]
+[Route("api/auth")]
+public sealed class AuthenticationController(IOptions<PosAuthenticationOptions> options) : ControllerBase
 {
-    public class AuthenticationController : Controller
+    public sealed class AuthenticationData
     {
-        private readonly IConfiguration config;
-
-        public AuthenticationController(IConfiguration config)
-        {
-            this.config = config;
-        }
-        public record AuthenticationData(string? UserName, string? password);
-        public record UserData(int Id, string FirstName, string LastName, string UserName);
-        [HttpPost("token")]
-        [AllowAnonymous]
-        public ActionResult<string> Authenticate([FromBody] AuthenticationData data)
-        {
-            var user = ValidateCredentials(data);
-
-            if (user == null)
-            {
-                return Unauthorized();
-            }
-
-            var token = GenerateToken(user);
-            return Ok(token);
-        }
-
-        private object GenerateToken(UserData user)
-        {
-            var secreteKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(config.GetValue<string>("Authentication: SecreteKey")!));
-
-            var signingCreedentials = new SigningCredentials(secreteKey, SecurityAlgorithms.HmacSha256);
-
-            List<Claim> claims = new();
-            claims.Add(new(JwtRegisteredClaimNames.Sub, user.Id.ToString()));
-            claims.Add(new(JwtRegisteredClaimNames.UniqueName, user.UserName));
-
-            var token = new JwtSecurityToken(config.GetValue<string>("Authentication:Issuer"),
-                config.GetValue<string>("Authentication:Audience"),
-                claims,
-                DateTime.UtcNow,
-                DateTime.UtcNow.AddMinutes(10),
-                signingCreedentials);
-        }
-        private UserData? ValidateCredentials(AuthenticationData data)
-        {
-            if CompareValues() {
-
-            }
-            return null;
-        private bool CompareValues(string? actual, string? expected)
-        {
-            if (actual != null)
-            {
-                if (actual.Equals(expected))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
+        [Required, StringLength(64)] public string UserName { get; set; } = "";
+        [Required, StringLength(256, MinimumLength = 32)] public string Password { get; set; } = "";
     }
 
-        private bool CompareValues(AuthenticationData data)
+    [HttpPost("token")]
+    [AllowAnonymous]
+    [EnableRateLimiting("token")]
+    public IActionResult Authenticate(AuthenticationData data)
+    {
+        var settings = options.Value;
+        var client = settings.Clients.SingleOrDefault(c => c.ClientId == data.UserName);
+        if (client is null || !client.Matches(data.Password)) return Unauthorized();
+
+        var now = DateTime.UtcNow;
+        var claims = new List<Claim>
         {
-            throw new NotImplementedException();
-        }
+            new(JwtRegisteredClaimNames.Sub, client.ClientId),
+            new("till_id", client.TillId),
+            new("outlet_id", client.OutletId.ToString(CultureInfo.InvariantCulture)),
+            new("department", client.DepartmentType),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SecretKey));
+        var token = new JwtSecurityToken(settings.Issuer, settings.Audience, claims,
+            now, now.AddMinutes(10), new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+        Response.Headers.CacheControl = "no-store";
+        return Ok(new { accessToken = new JwtSecurityTokenHandler().WriteToken(token),
+            tokenType = "Bearer", expiresIn = 600 });
     }
+}

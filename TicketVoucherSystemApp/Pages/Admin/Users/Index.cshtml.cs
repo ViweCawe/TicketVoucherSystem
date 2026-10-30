@@ -119,6 +119,7 @@ public sealed class IndexModel(
         public string Password { get; set; } = string.Empty;
 
         [Required]
-        public string Role { get; set; } = ApplicationRoles.Redeemer;
+        public string Role { get; set; } = ApplicationRoles.Issuer;
     }
 }
+

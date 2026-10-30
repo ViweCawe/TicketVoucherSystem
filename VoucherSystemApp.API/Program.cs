@@ -1,23 +1,18 @@
+using VoucherSystemApp.API.StartupConfig;
+
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
+builder.AddPosServices();
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
-
+app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
-
+app.UseRateLimiter();
+if (app.Environment.IsDevelopment()) app.MapOpenApi();
 app.MapControllers();
-
+app.MapGet("/health", () => Results.Ok(new { status = "running" })).AllowAnonymous();
 app.Run();
+
+// Used by the HTTP integration tests.
+public partial class Program { }

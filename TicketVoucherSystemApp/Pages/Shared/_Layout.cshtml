@@ -3,7 +3,6 @@
     var signedIn = User.Identity?.IsAuthenticated == true;
     var canReport = User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Executive");
     var canIssue = User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Issuer");
-    var canRedeem = User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Redeemer");
 }
 <!doctype html>
 <html lang="en">
@@ -54,11 +53,6 @@
                     {
                         <a class="nav-link @(path.StartsWithSegments("/Operations/Issue") ? "active" : null)" asp-page="/Operations/Issue"><span>+</span>Issue package</a>
                     }
-                    @if (canRedeem)
-                    {
-                        <a class="nav-link @(path.StartsWithSegments("/Operations/Redeem") ? "active" : null)" asp-page="/Operations/Redeem" asp-route-department="Retail"><span>V</span>Retail redeem</a>
-                        <a class="nav-link" asp-page="/Operations/Redeem" asp-route-department="FoodAndBeverage"><span>F</span>F&amp;B redeem</a>
-                    }
 
                     @if (User.IsInRole("Admin"))
                     {
@@ -95,3 +89,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

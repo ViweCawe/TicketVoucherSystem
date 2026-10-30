@@ -1,0 +1,109 @@
+{
+  "info": {
+    "name": "Voucher POS API \u2014 MICROS and HRK",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://localhost:7240"
+    },
+    {
+      "key": "clientId",
+      "value": "micros-fnb-01"
+    },
+    {
+      "key": "clientSecret",
+      "value": "SET_IN_PRIVATE_ENVIRONMENT"
+    },
+    {
+      "key": "voucherCode",
+      "value": "1605729254"
+    },
+    {
+      "key": "idempotencyKey",
+      "value": "8dc21e5d-834f-4ae9-9260-f9602c6b1f39"
+    },
+    {
+      "key": "transactionId",
+      "value": "MICROS-20261029-000123"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authenticate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/token",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userName\": \"{{clientId}}\",\n  \"password\": \"{{clientSecret}}\"\n}"
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) pm.environment.set(\"accessToken\", pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lookup voucher",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/pos/v1/vouchers/lookup",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"voucherCode\": \"{{voucherCode}}\",\n  \"saleTotal\": 1500,\n  \"eligibleTotal\": 1500,\n  \"currency\": \"ZAR\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Redeem voucher \u2014 repeats use same key",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/pos/v1/vouchers/redeem",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"voucherCode\": \"{{voucherCode}}\",\n  \"saleTotal\": 1500,\n  \"eligibleTotal\": 1500,\n  \"currency\": \"ZAR\",\n  \"idempotencyKey\": \"{{idempotencyKey}}\",\n  \"transactionId\": \"{{transactionId}}\",\n  \"operatorId\": \"EMP-42\"\n}"
+        }
+      }
+    }
+  ]
+}

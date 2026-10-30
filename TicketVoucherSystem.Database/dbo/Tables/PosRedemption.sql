@@ -1,0 +1,27 @@
+CREATE TABLE dbo.PosRedemption
+(
+    Id bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_PosRedemption PRIMARY KEY,
+    ClientId varchar(64) COLLATE Latin1_General_100_BIN2 NOT NULL,
+    IdempotencyKey uniqueidentifier NOT NULL,
+    TransactionId varchar(64) COLLATE Latin1_General_100_BIN2 NOT NULL,
+    VoucherId bigint NOT NULL,
+    VoucherCode varchar(32) COLLATE Latin1_General_100_BIN2 NOT NULL,
+    DepartmentType varchar(30) NOT NULL,
+    OutletId int NOT NULL,
+    TillId varchar(64) COLLATE Latin1_General_100_BIN2 NOT NULL,
+    OperatorId varchar(64) COLLATE Latin1_General_100_BIN2 NOT NULL,
+    SaleTotal decimal(12,2) NOT NULL,
+    EligibleTotal decimal(12,2) NOT NULL,
+    DiscountAmount decimal(12,2) NOT NULL,
+    AmountDue AS (SaleTotal - DiscountAmount),
+    Currency char(3) NOT NULL CONSTRAINT DF_PosRedemption_Currency DEFAULT ('ZAR'),
+    RedeemedUtc datetime2(0) NOT NULL,
+    CONSTRAINT FK_PosRedemption_Voucher FOREIGN KEY (VoucherId) REFERENCES dbo.Voucher(Id),
+    CONSTRAINT FK_PosRedemption_Outlet FOREIGN KEY (OutletId) REFERENCES dbo.Outlet(Id),
+    CONSTRAINT UQ_PosRedemption_Key UNIQUE (ClientId, IdempotencyKey),
+    CONSTRAINT UQ_PosRedemption_Transaction UNIQUE (ClientId, TransactionId),
+    CONSTRAINT UQ_PosRedemption_Voucher UNIQUE (VoucherId),
+    CONSTRAINT CK_PosRedemption_Amounts CHECK (SaleTotal >= EligibleTotal AND EligibleTotal >= DiscountAmount AND DiscountAmount > 0),
+    CONSTRAINT CK_PosRedemption_Currency CHECK (Currency = 'ZAR'),
+    CONSTRAINT CK_PosRedemption_Department CHECK (DepartmentType IN ('Retail', 'FoodAndBeverage'))
+);

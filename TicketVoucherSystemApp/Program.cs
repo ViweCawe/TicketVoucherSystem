@@ -5,7 +5,6 @@ using TicketVoucherSystem.Data.Sql;
 using TicketVoucherSystemApp.Authorization;
 using TicketVoucherSystemApp.Data;
 using TicketVoucherSystemApp.Integrations.WebTickets;
-using TicketVoucherSystemApp.Pos;
 using TicketVoucherSystemApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,16 +39,12 @@ builder.Services.AddHostedService<AdminRoleInitializer>();
 builder.Services.Configure<WebTicketsOptions>(
     builder.Configuration.GetSection(WebTicketsOptions.SectionName));
 builder.Services.AddHttpClient<IWebTicketsClient, WebTicketsClient>();
-builder.Services.Configure<PosApiOptions>(
-    builder.Configuration.GetSection(PosApiOptions.SectionName));
-builder.Services.AddScoped<PosApiKeyFilter>();
 
 builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeFolder("/Dashboard", "AppUser");
     options.Conventions.AuthorizePage("/Operations/Issue", "VoucherIssueAccess");
     options.Conventions.AuthorizeFolder("/Tickets", "VoucherIssueAccess");
-    options.Conventions.AuthorizePage("/Operations/Redeem", "VoucherRedeemAccess");
     options.Conventions.AuthorizeFolder("/Reports", "ReportsAccess");
     options.Conventions.AuthorizeFolder("/Admin", "AdminOnly");
     options.Conventions.AuthorizeAreaPage("Identity", "/Account/Register", "RegistrationDisabled");
@@ -65,10 +60,6 @@ builder.Services.AddAuthorizationBuilder()
         ApplicationRoles.Admin,
         ApplicationRoles.Manager,
         ApplicationRoles.Issuer))
-    .AddPolicy("VoucherRedeemAccess", policy => policy.RequireRole(
-        ApplicationRoles.Admin,
-        ApplicationRoles.Manager,
-        ApplicationRoles.Redeemer))
     .AddPolicy("RegistrationDisabled", policy => policy.RequireAssertion(_ => false));
 
 var app = builder.Build();
@@ -90,7 +81,7 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" })).AllowAnonymous();
-app.MapPosApi();
 app.MapRazorPages().WithStaticAssets();
 
 app.Run();
+

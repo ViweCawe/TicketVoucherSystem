@@ -48,7 +48,7 @@ jobs:
           container="${{ job.services.sqlserver.id }}"
           sqlcmd=/opt/mssql-tools18/bin/sqlcmd
           for attempt in {1..30}; do
-            if docker exec "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -Q 'SELECT 1' >/dev/null 2>&1; then
+            if docker exec "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -b -Q 'SELECT 1' >/dev/null 2>&1; then
               break
             fi
             if [ "$attempt" = 30 ]; then
@@ -57,9 +57,9 @@ jobs:
             fi
             sleep 2
           done
-          docker exec "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -Q 'CREATE DATABASE TicketVoucherSystem'
+          docker exec "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -b -Q 'CREATE DATABASE TicketVoucherSystem'
           docker cp TicketVoucherSystem.Database/. "$container":/tmp/database
-          docker exec -w /tmp/database/Scripts "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -d TicketVoucherSystem -i Deploy.sql
+          docker exec -w /tmp/database/Scripts "$container" "$sqlcmd" -S localhost -U sa -P 'Voucher_CI_2026!Strong' -C -b -d TicketVoucherSystem -i Deploy.sql
 
       - name: Apply existing Identity migration
         env:
@@ -112,3 +112,4 @@ jobs:
       - name: Show application log on failure
         if: failure()
         run: cat /tmp/voucher-app.log || true
+

@@ -42,19 +42,6 @@ public sealed class VoucherDataTests
         Assert.Equal(200m, ReadParameter<decimal>(database.Parameters, "FoodAndBeverageAmount"));
     }
 
-    [Fact]
-    public async Task Redeem_sends_outlet_id_to_the_stored_procedure()
-    {
-        var database = new RecordingDataAccess();
-        var vouchers = new VoucherData(database);
-
-        await vouchers.RedeemAsync("1234567890", "Retail", 42, "operator@example.com");
-
-        Assert.Equal("dbo.spVoucher_Redeem", database.StoredProcedure);
-        Assert.Equal(42, ReadParameter<int>(database.Parameters, "OutletId"));
-        Assert.Null(database.Parameters?.GetType().GetProperty("Location"));
-    }
-
     private static T ReadParameter<T>(object? parameters, string name) =>
         Assert.IsType<T>(parameters?.GetType().GetProperty(name)?.GetValue(parameters));
 
@@ -85,3 +72,4 @@ public sealed class VoucherDataTests
         }
     }
 }
+
