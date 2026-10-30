@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketVoucherSystem.Data.Exceptions;
 using TicketVoucherSystem.Data.Models;
@@ -6,6 +7,7 @@ using VoucherSystemApp.API.Models;
 namespace VoucherSystemApp.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/pos/v1/vouchers")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class VouchersController(IPosVoucherData data) : ControllerBase
