@@ -29,7 +29,12 @@ public sealed class AuthenticationController(IOptions<PosAuthenticationOptions> 
     {
         var settings = options.Value;
         var client = settings.Clients.SingleOrDefault(c => c.ClientId == data.UserName);
-        if (client is null || !client.Matches(data.Password)) return Unauthorized();
+        if (client is null || !client.Matches(data.Password))
+        {
+            return Unauthorized();
+
+        }
+
 
         var now = DateTime.UtcNow;
         var claims = new List<Claim>

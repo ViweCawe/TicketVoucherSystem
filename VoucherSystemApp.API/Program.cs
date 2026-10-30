@@ -2,17 +2,28 @@ using VoucherSystemApp.API.StartupConfig;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddPosServices();
+builder.AddAuthServices();
+builder.AddHealthCheckServices();
+builder.AddStandardServices();
+
+
 var app = builder.Build();
-app.UseExceptionHandler();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseHttpsRedirection();
 app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseRateLimiter();
-if (app.Environment.IsDevelopment()) app.MapOpenApi();
+
 app.MapControllers();
-app.MapGet("/health", () => Results.Ok(new { status = "running" })).AllowAnonymous();
+app.MapHealthChecks("health").AllowAnonymous();
 app.Run();
 
-// Used by the HTTP integration tests.
-public partial class Program { }
+
