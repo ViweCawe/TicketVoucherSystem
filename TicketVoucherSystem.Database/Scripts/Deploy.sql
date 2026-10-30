@@ -1,3 +1,6 @@
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+GO
 :r ../dbo/Tables/VoucherPackage.sql
 GO
 :r ../dbo/Tables/Outlet.sql
@@ -73,4 +76,12 @@ GO
 :r ../dbo/StoredProcedures/spReport_GetOutletPerformance.sql
 GO
 :r ./PostDeployment.sql
+GO
+
+
+:r ../dbo/Tables/PosRedemption.sql
+GO
+:r ../dbo/StoredProcedures/spPosVoucher_Lookup.sql
+GO
+:r ../dbo/StoredProcedures/spPosVoucher_Redeem.sql
 GO

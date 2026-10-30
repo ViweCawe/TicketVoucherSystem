@@ -1,10 +1,12 @@
 <Solution>
-  <Project Path="V:/NewApplicationsTMAC/TicketVoucherSystem/TicketVoucherSystem.Data/TicketVoucherSystem.Data.csproj" />
-  <Project Path="V:/NewApplicationsTMAC/TicketVoucherSystem/TicketVoucherSystem.Database/TicketVoucherSystem.Database.sqlproj" Id="81b6c093-a9d5-49d7-91db-89576b92b6a3">
+  <Project Path="VoucherSystemApp.API/VoucherSystemApp.API.csproj" Id="293ddf77-b165-4dd2-8c67-7814e77adc46" />
+  <Project Path="TicketVoucherSystem.Data/TicketVoucherSystem.Data.csproj" />
+  <Project Path="TicketVoucherSystem.Database/TicketVoucherSystem.Database.sqlproj" Id="81b6c093-a9d5-49d7-91db-89576b92b6a3">
     <Build />
     <Deploy />
   </Project>
-  <Project Path="V:/NewApplicationsTMAC/TicketVoucherSystem/TicketVoucherSystemApp.Tests/TicketVoucherSystemApp.Tests.csproj" />
-  <Project Path="V:/NewApplicationsTMAC/TicketVoucherSystem/TicketVoucherSystemApp/TicketVoucherSystemApp.csproj" />
-  <Project Path="V:/NewApplicationsTMAC/TicketVoucherSystem/VoucherSystemApp.API/VoucherSystemApp.API.csproj" Id="f12cb808-e235-40f0-9c5c-3d52f4e822e8" />
+  <Project Path="TicketVoucherSystemApp.Tests/TicketVoucherSystemApp.Tests.csproj" />
+  <Project Path="TicketVoucherSystemApp/TicketVoucherSystemApp.csproj" />
+  <Project Path="VoucherSystemApp.API.Tests/VoucherSystemApp.API.Tests.csproj" />
 </Solution>
+

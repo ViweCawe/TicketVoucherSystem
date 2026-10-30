@@ -46,16 +46,19 @@ for (const viewport of [
     await expect(page.getByText('R200 OFF', { exact: true }).first()).toBeVisible();
     await page.screenshot({ path: `artifacts/group-print-${viewport.name}.png`, fullPage: true });
 
-    await page.goto('/Operations/Redeem?department=Retail');
-    await page.getByLabel('Redeeming outlet').selectOption({ label: 'Vista' });
-    await page.getByPlaceholder(/Scan or enter/i).fill(ticketNumbers[0]);
-    await page.getByRole('button', { name: 'Redeem voucher' }).click();
-    await expect(page.getByText('REDEEMED')).toBeVisible();
-    await expect(page.getByText(/at Vista/)).toBeVisible();
+    await expect(page.locator('a[href*="/Operations/Redeem"]')).toHaveCount(0);
+    const removedPage = await page.request.get('/Operations/Redeem');
+    expect(removedPage.status()).toBe(404);
+    const removedApi = await page.request.post('/api/pos/v1/vouchers/redeem', { data: {} });
+    // Static-asset fallback routing can reject an unmatched POST with 405.
+    expect([404, 405]).toContain(removedApi.status());
 
+    // The print view intentionally uses A4 width; check a normal app page on mobile.
+    await page.goto('/Dashboard');
     const hasHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth
     );
     expect(hasHorizontalOverflow).toBe(false);
   });
 }
+
