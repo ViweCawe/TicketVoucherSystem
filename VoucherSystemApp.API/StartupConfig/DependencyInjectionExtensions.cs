@@ -27,7 +27,7 @@ public static class DependencyInjectionExtensions
     public static void AddBasicAuthServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddOptions<BasicAuthCredentials>()
-            .Bind(builder.Configuration.GetSection("BasicAuth"))
+            .Bind(builder.Configuration.GetSection("Authentication:BasicAuth"))
             .Validate(c => c.IsValid(), "Configure BasicAuth:Username and BasicAuth:Password outside source control.")
             .ValidateOnStart();
         builder.Services.AddAuthentication("Basic")
